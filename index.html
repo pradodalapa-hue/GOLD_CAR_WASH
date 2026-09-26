@@ -4,12 +4,121 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRENSA JDP INDUSTRIAL</title>
- <!-- TAGS CRÍTICAS PARA O WHATSAPP MOSTRAR A FOTO -->
-    <meta property="og:title" content="Seu veículo está pronto!">
-    <meta property="og:description" content="Pague via pix! com segurança no conforto do seu lar.">
-    <meta property="og:image" content="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790434942988_image_6a630504.jpg">
-    <meta property="og:type" content="website">
-   
+   <!-- SEGURANÇA JDP - COLOQUE LOGO ABAIXO DA TAG <HEAD> -->
+<script>
+(function() {
+    const FOTO_BLOQUEIO = "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790458867299_Screenshot_20260926_173717_Chrome_Beta.jpg";
+    
+    let tentativas = 0;
+    const maxTentativas = 3;
+
+    function criarTelaSeguranca() {
+        if (document.getElementById('jdp-seguranca-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'jdp-seguranca-overlay';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; z-index: 999999;
+            background: #020617; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-family: 'Inter', sans-serif;
+            color: #fff; user-select: none; padding: 20px;
+        `;
+
+        overlay.innerHTML = `
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 25px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
+                <h3 style="color: #fde047; font-size: 15px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Área Restrita</h3>
+                <p style="color: #94a3b8; font-size: 11px; margin-bottom: 25px;">Arraste a alavanca totalmente para o lado para confirmar acesso humano.</p>
+                
+                <div id="jdp-slider-track" style="position: relative; width: 100%; height: 50px; background: #020617; border-radius: 25px; border: 1px solid #1e293b; overflow: hidden; display: flex; align-items: center;">
+                    <span id="jdp-slider-text" style="position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 800; color: #64748b; letter-spacing: 1px; pointer-events: none; text-transform: uppercase;">Puxe para liberar ➔</span>
+                    <div id="jdp-slider-btn" style="position: absolute; left: 0; width: 50px; height: 50px; background: #fde047; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(253,224,71,0.5); transition: background 0.2s;">
+                        
+                    </div>
+                </div>
+                <p id="jdp-tentativas-txt" style="color: #ef4444; font-size: 10px; margin-top: 15px; font-weight: bold; min-height: 14px;"></p>
+            </div>
+        `;
+
+        document.documentElement.appendChild(overlay);
+
+        const btn = document.getElementById('jdp-slider-btn');
+        const track = document.getElementById('jdp-slider-track');
+        const txtTentativas = document.getElementById('jdp-tentativas-txt');
+        let arrastando = false;
+
+        function iniciarArrasto(e) {
+            arrastando = true;
+        }
+
+        function moverArrasto(e) {
+            if (!arrastando) return;
+            const trackRect = track.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            let deslocamento = clientX - trackRect.left - 25;
+
+            const maxDeslocamento = track.clientWidth - 50;
+            if (deslocamento < 0) deslocamento = 0;
+            if (deslocamento > maxDeslocamento) deslocamento = maxDeslocamento;
+
+            btn.style.left = deslocamento + 'px';
+
+            if (deslocamento >= maxDeslocamento - 5) {
+                arrastando = false;
+                sucessoAcesso();
+            }
+        }
+
+        function pararArrasto() {
+            if (!arrastando) return;
+            arrastando = false;
+            
+            const trackRect = track.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+            const maxDeslocamento = track.clientWidth - 50;
+
+            if ((btnRect.left - trackRect.left) < (maxDeslocamento - 15)) {
+                btn.style.left = '0px';
+                tentativas++;
+                
+                if (tentativas >= maxTentativas) {
+                    bloqueioTotalDefinitivo();
+                } else {
+                    txtTentativas.innerText = `Tentativa incorreta (${tentativas}/${maxTentativas}). Tente novamente.`;
+                }
+            }
+        }
+
+        btn.addEventListener('mousedown', iniciarArrasto);
+        window.addEventListener('mousemove', moverArrasto);
+        window.addEventListener('mouseup', pararArrasto);
+
+        btn.addEventListener('touchstart', iniciarArrasto);
+        window.addEventListener('touchmove', moverArrasto);
+        window.addEventListener('touchend', pararArrasto);
+    }
+
+    function sucessoAcesso() {
+        const overlay = document.getElementById('jdp-seguranca-overlay');
+        if (overlay) overlay.remove(); // Libera o site atual na mesma página
+    }
+
+    function bloqueioTotalDefinitivo() {
+        document.body.innerHTML = `
+            <div style="width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; margin: 0; padding: 0; overflow: hidden; position: fixed; inset: 0; z-index: 9999999;">
+                <img src="${FOTO_BLOQUEIO}" style="width: 100vw; height: 100vh; object-fit: cover; margin: 0; padding: 0; display: block;" alt="Sem Conexão">
+            </div>
+        `;
+        window.stop();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', criarTelaSeguranca);
+    } else {
+        criarTelaSeguranca();
+    }
+})();
+</script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #0b1614; --card: #14211e; --accent: #20b396; --text: #ffffff; }
@@ -36,7 +145,7 @@
 <body>
 
 <div class="container">
-    <h1>🛡️ GOLD CAR WASH</h1>
+    <h1>🛡️ LEOCARDIO'S BURGUER'S</h1>
     <input type="number" id="valorManual" class="valor-input" placeholder="R$ 0,00">
     
     <div class="grid">
@@ -66,8 +175,8 @@
 </div>
 
 <script>
-    const CHAVE = "6a0cad4f-34f5-44c0-b1d6-2de0c43ca9d8";
-    const NOME = "PAULO HENRIQUE ALMEIRA PINHO";
+    const CHAVE = "70945887205";
+    const NOME = "JOSE DIVINOPRADODALAPA";
     const CIDADE = "MANAUS";
 
     function setValor(v) { document.getElementById('valorManual').value = v; }
