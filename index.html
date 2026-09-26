@@ -9,34 +9,7 @@
     <meta property="og:description" content="Confira nosso app venha conferir promoçoes e descontos!!.">
     <meta property="og:image" content="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790434942988_image_6a630504.jpg">
     <meta property="og:type" content="website">
-
-   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('origem') !== 'whatsapp') {
-        document.write(`
-            <style>
-                body { margin: 0; padding: 0; overflow: hidden; }
-                .tela-bloqueio { 
-                    width: 100vw; 
-                    height: 100vh; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    background: #000; 
-                }
-                .tela-bloqueio img { 
-                    max-width: 100%; 
-                    max-height: 100%; 
-                    object-fit: contain; /* Ou 'cover' se quiser preencher tudo cortando as bordas */
-                }
-            </style>
-            <div class="tela-bloqueio">
-                <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779707901946_1776103715509.png" alt="Acesso Negado">
-            </div>
-        `);
-        window.stop();
-    }
-</script>
+   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #0b1614; --card: #14211e; --accent: #20b396; --text: #ffffff; }
