@@ -202,7 +202,6 @@
         <div id="pix-texto" class="pix-code"></div>
         <button id="btnCopiar" class="btn-principal" onclick="copiarPix()" style="width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">COPIAR CÓDIGO PIX</button>
         
-        <!-- AVISO DE SEGURANÇA: O CLIENTE APENAS AGUARDA O VIGIA JDP LIBERAR -->
         <div class="status-aguardando">
             <i class="fas fa-shield-alt"></i> AGUARDANDO CONFIRMAÇÃO DO VIGIA JDP...
         </div>
@@ -224,6 +223,11 @@
     let chaveCongelada = CHAVE;
     let idUrlAtual = null;
     let dadosTravaCarregados = false;
+
+    // Função para redirecionar para o Google com segurança
+    function jogarParaGoogle() {
+        window.location.replace("https://www.google.com");
+    }
 
     function sanitizarValor(entrada) {
         if (typeof entrada === 'number') return isNaN(entrada) ? 0 : entrada;
@@ -256,9 +260,12 @@
             minutos = minutos < 10 ? "0" + minutos : minutos;
             segundos = segundos < 10 ? "0" + segundos : segundos;
             display.innerText = "Tempo restante: " + minutos + ":" + segundos;
+            
+            // ACONTECIMENTO 2: EXPIRAÇÃO (Joga pro Google após expirar)
             if (--timer < 0) {
                 clearInterval(window.timerInterval);
-                display.innerText = "Código expirado!";
+                display.innerText = "Código expirado! Redirecionando...";
+                setTimeout(jogarParaGoogle, 2000);
             }
         }, 1000);
     }
@@ -282,10 +289,15 @@
         iniciarTimer(300);
     }
 
-    // Leitura estrita baseada nas ordens do Vigia JDP via Firebase
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         idUrlAtual = urlParams.get('id');
+
+        // ACONTECIMENTO 1: ACESSO SEM ID (Curiosos que abrirem só a URL base vão para o Google imediatamente)
+        if (!idUrlAtual) {
+            jogarParaGoogle();
+            return;
+        }
 
         if (idUrlAtual) {
             const refCobranca = db.ref('cobrancas/' + idUrlAtual);
@@ -352,14 +364,17 @@
         }
     });
 
+    // ACONTECIMENTO 3: PAGO (Mostra a aprovação e redireciona pro Google em seguida)
     function mostrarPagamentoAprovado() {
+        if(window.timerInterval) clearInterval(window.timerInterval);
         document.getElementById('pagamento-area').innerHTML = `
             <div style="background: #10b981; color: #000; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
                 <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
                 PAGAMENTO APROVADO PELO VIGIA JDP!<br>
-                <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 8px;">Veículo liberado com sucesso. Obrigado!</span>
+                <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 8px;">Redirecionando...</span>
             </div>
         `;
+        setTimeout(jogarParaGoogle, 3000);
     }
 
     function copiarPix() {
