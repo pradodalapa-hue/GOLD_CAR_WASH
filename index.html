@@ -237,16 +237,17 @@
         return isNaN(num) ? 0 : num;
     }
 
-    // MOTOR PIX BLINDADO (PADRÃO BACEN CORRETO)
+    // MOTOR PIX EXATO DA MÁQUININHA (GARANTE A CHAVE VÁLIDA E CRC16 CORRETO)
     function gerarPayload(valor, chavePixCustom) {
-        const chaveUsada = chavePixCustom || CHAVE;
+        const chaveUsada = (chavePixCustom || CHAVE).trim();
+        
         const formatField = (id, val) => {
             const len = val.length.toString().padStart(2, '0');
             return id + len + val;
         };
 
         const vStr = valor.toFixed(2);
-        const guiPix = formatField("00", "br.gov.bcb.pix") + formatField("01", chaveUsada.trim());
+        const guiPix = formatField("00", "br.gov.bcb.pix") + formatField("01", chaveUsada);
         const merchantAccount = formatField("26", guiPix);
         
         const mcc = "52040000";
