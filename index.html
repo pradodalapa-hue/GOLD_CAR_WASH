@@ -185,7 +185,7 @@
 
 <div class="container">
     <h1>🛡️ GOLD CAR WASH</h1>
-    <input type="number" id="valorManual" class="valor-input" placeholder="R$ 0,00" step="0.01" disabled>
+    <input type="text" id="valorManual" class="valor-input" placeholder="R$ 0,00" disabled>
 
     <div id="pagamento-area">
         <h3 style="text-align: center; color: var(--accent); margin-top: 0; font-size: 1rem;">Finalize seu pagamento</h3>
@@ -217,8 +217,8 @@
     const db = firebase.database();
 
     const CHAVE = "Pradodalapa4@gmail.com";
-const NOME = "JOSE DIVINO PRADO DA LAPA";
-const CIDADE = "MANAUS";
+    const NOME = "JOSE DIVINO PRADO DA LAPA";
+    const CIDADE = "MANAUS";
 
     let valorCongelado = null;
     let chaveCongelada = CHAVE;
@@ -237,17 +237,43 @@ const CIDADE = "MANAUS";
         return isNaN(num) ? 0 : num;
     }
 
+    // MOTOR PIX BLINDADO (PADRÃO BACEN CORRETO)
     function gerarPayload(valor, chavePixCustom) {
         const chaveUsada = chavePixCustom || CHAVE;
-        const f = (id, v) => id + v.length.toString().padStart(2, '0') + v;
+        const formatField = (id, val) => {
+            const len = val.length.toString().padStart(2, '0');
+            return id + len + val;
+        };
+
         const vStr = valor.toFixed(2);
-        let p = "000201" + f("26", f("00", "br.gov.bcb.pix") + f("01", chaveUsada)) + "520400005303986" + f("54", vStr) + "5802BR" + f("59", NOME.substring(0,25)) + f("60", CIDADE.substring(0,15)) + "62070503***6304";
+        const guiPix = formatField("00", "br.gov.bcb.pix") + formatField("01", chaveUsada.trim());
+        const merchantAccount = formatField("26", guiPix);
+        
+        const mcc = "52040000";
+        const moeda = "5303986"; 
+        const valorField = formatField("54", vStr);
+        const pais = "5802BR";
+        const nomeField = formatField("59", NOME.substring(0, 25));
+        const cidadeField = formatField("60", CIDADE.substring(0, 15));
+        
+        const additionalData = formatField("05", "***");
+        const sub62 = formatField("62", additionalData);
+
+        let payload = "000201" + merchantAccount + mcc + moeda + valorField + pais + nomeField + cidadeField + sub62 + "6304";
+
         let crc = 0xFFFF;
-        for (let i = 0; i < p.length; i++) {
-            crc ^= (p.charCodeAt(i) << 8);
-            for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : (crc << 1);
+        for (let i = 0; i < payload.length; i++) {
+            crc ^= (payload.charCodeAt(i) << 8);
+            for (let j = 0; j < 8; j++) {
+                if ((crc & 0x8000) !== 0) {
+                    crc = (crc << 1) ^ 0x1021;
+                } else {
+                    crc <<= 1;
+                }
+                crc &= 0xFFFF;
+            }
         }
-        return p + (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+        return payload + crc.toString(16).toUpperCase().padStart(4, '0');
     }
 
     function iniciarTimer(duracaoEmSegundos) {
@@ -292,7 +318,6 @@ const CIDADE = "MANAUS";
         const urlParams = new URLSearchParams(window.location.search);
         idUrlAtual = urlParams.get('id');
 
-        // Escuta direta e unificada na raiz exata do Vigia Java (LOJA_ID)
         const refPagamentoOnline = db.ref(LOJA_ID);
         refPagamentoOnline.on('value', snap => {
             const info = snap.val();
@@ -303,7 +328,7 @@ const CIDADE = "MANAUS";
                 if (val > 0 && !dadosTravaCarregados) {
                     valorCongelado = val;
                     chaveCongelada = chaveUrl;
-                    document.getElementById('valorManual').value = valorCongelado.toFixed(2);
+                    document.getElementById('valorManual').value = val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
                     processarPix(valorCongelado, chaveCongelada);
                     dadosTravaCarregados = true;
                 }
@@ -314,7 +339,6 @@ const CIDADE = "MANAUS";
             }
         });
 
-        // Caso exista ID na URL, verifica também o nó de cobranças correspondente
         if (idUrlAtual) {
             const refCobranca = db.ref('cobrancas/' + idUrlAtual);
             refCobranca.on('value', snap => {
@@ -326,7 +350,7 @@ const CIDADE = "MANAUS";
                     if (val > 0 && !dadosTravaCarregados) {
                         valorCongelado = val;
                         chaveCongelada = chaveUrl;
-                        document.getElementById('valorManual').value = valorCongelado.toFixed(2);
+                        document.getElementById('valorManual').value = val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
                         processarPix(valorCongelado, chaveCongelada);
                         dadosTravaCarregados = true;
                     }
