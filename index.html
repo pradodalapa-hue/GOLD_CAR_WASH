@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GOLD CAR WASH - PAGAMENTO</title>
+    <title>JDP SMART INDUSTRIAL - NUBANK 02</title>
     
-    <!-- TAGS CRÍTICAS PARA O WHATSAPP MOSTRAR A FOTO -->
-    <meta property="og:title" content="PAGUE COM O PIX !">
+    <!-- TAGS CRÍTICAS PARA O WHATSAPP -->
+    <meta property="og:title" content="PAGUE COM O PIX - NUBANK 02!">
     <meta property="og:description" content="Pague com o Pix rápido e seguro.">
     <meta property="og:image" content="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790472078751_1001572650.jpg">
     <meta property="og:type" content="website">
@@ -33,19 +33,19 @@
                 position: fixed; inset: 0; z-index: 999999;
                 background: #020617; display: flex; flex-direction: column;
                 align-items: center; justify-content: center; font-family: 'Inter', sans-serif;
-                color: #fff; user-select: none; padding: 20px;
+                color: #fde047; user-select: none; padding: 20px;
             `;
 
             overlay.innerHTML = `
-                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 25px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
+                <div style="background: #0f172a; border: 1px solid #fde047; border-radius: 16px; padding: 25px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(253,224,71,0.2);">
                     <h3 style="color: #fde047; font-size: 15px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Área Restrita - Vigia JDP</h3>
-                    <p style="color: #94a3b8; font-size: 11px; margin-bottom: 25px;">Arraste a alavanca totalmente para o lado para confirmar acesso.</p>
+                    <p style="color: #fde047; font-size: 11px; margin-bottom: 25px;">Arraste a alavanca totalmente para o lado para confirmar acesso.</p>
                     
-                    <div id="jdp-slider-track" style="position: relative; width: 100%; height: 50px; background: #020617; border-radius: 25px; border: 1px solid #1e293b; overflow: hidden; display: flex; align-items: center;">
-                        <span id="jdp-slider-text" style="position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 800; color: #64748b; letter-spacing: 1px; pointer-events: none; text-transform: uppercase;">Puxe para liberar ➔</span>
-                        <div id="jdp-slider-btn" style="position: absolute; left: 0; width: 50px; height: 50px; background: #fde047; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(253,224,71,0.5);"></div>
+                    <div id="jdp-slider-track" style="position: relative; width: 100%; height: 50px; background: #020617; border-radius: 25px; border: 1px solid #fde047; overflow: hidden; display: flex; align-items: center;">
+                        <span id="jdp-slider-text" style="position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 800; color: #fde047; letter-spacing: 1px; pointer-events: none; text-transform: uppercase;">Puxe para liberar ➔</span>
+                        <div id="jdp-slider-btn" style="position: absolute; left: 0; width: 50px; height: 50px; background: #fde047; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(253,224,71,0.8);"></div>
                     </div>
-                    <p id="jdp-tentativas-txt" style="color: #ef4444; font-size: 10px; margin-top: 15px; font-weight: bold; min-height: 14px;"></p>
+                    <p id="jdp-tentativas-txt" style="color: #fde047; font-size: 10px; margin-top: 15px; font-weight: bold; min-height: 14px;"></p>
                 </div>
             `;
 
@@ -131,18 +131,19 @@
         :root { 
             --bg: #0b1614; 
             --card: #14211e; 
-            --accent: #20b396; 
-            --text: #ffffff; 
-            --gold: #D4AF37;
+            --accent: #fde047; 
+            --text: #fde047; 
+            --gold: #fde047;
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #2a3a37; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: var(--gold); font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; font-family: sans-serif; color: var(--gold); }
+        body { background: #000; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 400px; background: var(--card); padding: 20px; border-radius: 15px; border: 2px solid var(--gold); box-shadow: 0 10px 30px rgba(253,224,71,0.2); }
+        h1, h3, p, strong, span, label, div { color: var(--gold) !important; }
+        h1 { font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
         
-        .valor-input { width: 100%; padding: 15px; background: #0a1412; border: 1px solid var(--accent); color: white; border-radius: 8px; box-sizing: border-box; font-size: 1.2rem; margin-bottom: 15px; text-align: center; font-weight: bold; }
+        .valor-input { width: 100%; padding: 15px; background: #0a1412; border: 2px solid var(--gold); border-radius: 8px; box-sizing: border-box; font-size: 1.2rem; margin-bottom: 15px; text-align: center; font-weight: bold; }
         
-        #pagamento-area { display: none; margin-top: 25px; border-top: 1px solid #2a3a37; padding-top: 20px; }
+        #pagamento-area { display: none; margin-top: 25px; border-top: 1px solid var(--gold); padding-top: 20px; }
         
         .pix-flex { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
         
@@ -156,7 +157,7 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            border: 2px solid #ffffff;
+            border: 2px solid var(--gold);
         }
         #qr-box img, #qr-box canvas { 
             width: 100% !important; 
@@ -164,14 +165,13 @@
             object-fit: contain; 
         }
 
-        .instrucoes { font-size: 0.75rem; color: #a0a0a0; line-height: 1.3; }
-        .pix-code { background: #0a1412; padding: 10px; border: 1px solid #2a3a37; font-size: 0.65rem; color: #888; word-break: break-all; margin: 10px 0; border-radius: 5px; max-height: 70px; overflow-y: auto; }
-        .timer { color: var(--accent); font-size: 0.9rem; text-align: center; margin-top: 10px; font-weight: bold; }
+        .instrucoes { font-size: 0.75rem; line-height: 1.3; }
+        .pix-code { background: #0a1412; padding: 10px; border: 1px solid var(--gold); font-size: 0.65rem; word-break: break-all; margin: 10px 0; border-radius: 5px; max-height: 70px; overflow-y: auto; }
+        .timer { font-size: 0.9rem; text-align: center; margin-top: 10px; font-weight: bold; }
         
         .status-aguardando {
             background: #1e293b;
             border: 1px dashed var(--gold);
-            color: var(--gold);
             padding: 12px;
             border-radius: 8px;
             text-align: center;
@@ -184,11 +184,11 @@
 <body>
 
 <div class="container">
-    <h1>🛡️ GOLD CAR WASH</h1>
+    <h1>🛡️ NUBANK 02 - PAGAMENTO ONLINE</h1>
     <input type="number" id="valorManual" class="valor-input" placeholder="R$ 0,00" step="0.01" disabled>
 
     <div id="pagamento-area">
-        <h3 style="text-align: center; color: var(--accent); margin-top: 0; font-size: 1rem;">Finalize seu pagamento</h3>
+        <h3 style="text-align: center; margin-top: 0; font-size: 1rem;">Finalize seu pagamento</h3>
         
         <div class="pix-flex">
             <div id="qr-box"></div>
@@ -200,7 +200,7 @@
         </div>
         
         <div id="pix-texto" class="pix-code"></div>
-        <button id="btnCopiar" class="btn-principal" onclick="copiarPix()" style="width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">COPIAR CÓDIGO PIX</button>
+        <button id="btnCopiar" class="btn-principal" onclick="copiarPix()" style="width: 100%; padding: 15px; background: var(--gold); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">COPIAR CÓDIGO PIX</button>
         
         <div class="status-aguardando">
             <i class="fas fa-shield-alt"></i> AGUARDANDO CONFIRMAÇÃO DO VIGIA JDP...
@@ -211,12 +211,13 @@
 </div>
 
 <script>
+    const LOJA_ID = "NUBANK_02";
     const firebaseConfig = { apiKey: "", databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const CHAVE = "6a0cad4f-34f5-44c0-b1d6-2de0c43ca9d8";
-    const NOME = "PAULO HENRIQUE ALMEIRA PINHO";
+    const CHAVE = "Pradolindalva4@gmail.com";
+    const NOME = "JOSE LAPA";
     const CIDADE = "MANAUS";
 
     let valorCongelado = null;
@@ -224,7 +225,6 @@
     let idUrlAtual = null;
     let dadosTravaCarregados = false;
 
-    // Função para redirecionar para o Google com segurança
     function jogarParaGoogle() {
         window.location.replace("https://www.google.com");
     }
@@ -261,7 +261,6 @@
             segundos = segundos < 10 ? "0" + segundos : segundos;
             display.innerText = "Tempo restante: " + minutos + ":" + segundos;
             
-            // ACONTECIMENTO 2: EXPIRAÇÃO (Joga pro Google após expirar)
             if (--timer < 0) {
                 clearInterval(window.timerInterval);
                 display.innerText = "Código expirado! Redirecionando...";
@@ -293,11 +292,27 @@
         const urlParams = new URLSearchParams(window.location.search);
         idUrlAtual = urlParams.get('id');
 
-        // ACONTECIMENTO 1: ACESSO SEM ID (Curiosos que abrirem só a URL base vão para o Google imediatamente)
-        if (!idUrlAtual) {
-            jogarParaGoogle();
-            return;
-        }
+        // Escuta o novo nó específico: lojas/NUBANK_02/pagamento_online
+        const refPagamentoOnline = db.ref('lojas/' + LOJA_ID + '/pagamento_online');
+        refPagamentoOnline.on('value', snap => {
+            const info = snap.val();
+            if (info) {
+                const val = sanitizarValor(info.valor || info.valor_aguardando);
+                const chaveUrl = info.chavePix || info.chave || CHAVE;
+
+                if (val > 0 && !dadosTravaCarregados) {
+                    valorCongelado = val;
+                    chaveCongelada = chaveUrl;
+                    document.getElementById('valorManual').value = valorCongelado.toFixed(2);
+                    processarPix(valorCongelado, chaveCongelada);
+                    dadosTravaCarregados = true;
+                }
+
+                if (info.status === "RECEBIDO" || info.status === "pago") {
+                    mostrarPagamentoAprovado();
+                }
+            }
+        });
 
         if (idUrlAtual) {
             const refCobranca = db.ref('cobrancas/' + idUrlAtual);
@@ -320,58 +335,16 @@
                     }
                 }
             });
-
-            const refCaixaId = db.ref('caixa_pagamento/' + idUrlAtual);
-            refCaixaId.on('value', snap => {
-                const info = snap.val();
-                if (info) {
-                    const val = sanitizarValor(info.valor || info.valor_aguardando);
-                    const chaveUrl = info.chavePix || info.chave || CHAVE;
-
-                    if (val > 0 && !dadosTravaCarregados) {
-                        valorCongelado = val;
-                        chaveCongelada = chaveUrl;
-                        document.getElementById('valorManual').value = valorCongelado.toFixed(2);
-                        processarPix(valorCongelado, chaveCongelada);
-                        dadosTravaCarregados = true;
-                    }
-
-                    if (info.status === "RECEBIDO" || info.status === "pago") {
-                        mostrarPagamentoAprovado();
-                    }
-                }
-            });
         }
     });
 
-    db.ref('caixa_pagamento').on('value', snap => {
-        if (idUrlAtual) return;
-        const info = snap.val();
-        if (!info) return;
-
-        if (info.status === "RECEBIDO") {
-            mostrarPagamentoAprovado();
-            return;
-        }
-
-        if (info.status === "AGUARDANDO" && info.valor_aguardando !== undefined && !dadosTravaCarregados) {
-            const valorSeguro = sanitizarValor(info.valor_aguardando);
-            if (valorSeguro > 0) {
-                valorCongelado = valorSeguro;
-                document.getElementById('valorManual').value = valorCongelado.toFixed(2);
-                processarPix(valorCongelado, CHAVE);
-            }
-        }
-    });
-
-    // ACONTECIMENTO 3: PAGO (Mostra a aprovação e redireciona pro Google em seguida)
     function mostrarPagamentoAprovado() {
         if(window.timerInterval) clearInterval(window.timerInterval);
         document.getElementById('pagamento-area').innerHTML = `
-            <div style="background: #10b981; color: #000; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
-                <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
+            <div style="background: #fde047; color: #000; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+                <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px; color: #000;"></i><br>
                 PAGAMENTO APROVADO PELO VIGIA JDP!<br>
-                <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 8px;">Redirecionando...</span>
+                <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 8px; color: #000;">Redirecionando...</span>
             </div>
         `;
         setTimeout(jogarParaGoogle, 3000);
@@ -396,7 +369,7 @@
                 btn.style.color = "#000";
                 setTimeout(() => {
                     btn.innerText = "COPIAR CÓDIGO PIX";
-                    btn.style.background = "var(--accent)";
+                    btn.style.background = "var(--gold)";
                     btn.style.color = "#000";
                 }, 2000);
             } else {
