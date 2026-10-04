@@ -216,7 +216,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const CHAVE = "Pradolindalva4@gmail.com";
+    const CHAVE = "Pradodalapa4@gmail.com";
     const NOME = "JOSE DIVINO PRADO DA LAPA";
     const CIDADE = "MANAUS";
 
@@ -237,40 +237,36 @@
         return isNaN(num) ? 0 : num;
     }
 
-    // MOTOR PIX EXATO DA MÁQUININHA (GARANTE A CHAVE VÁLIDA E CRC16 CORRETO)
+    function formatField(id, val) {
+        const len = val.length.toString().padStart(2, '0');
+        return id + len + val;
+    }
+
     function gerarPayload(valor, chavePixCustom) {
         const chaveUsada = (chavePixCustom || CHAVE).trim();
-        
-        const formatField = (id, val) => {
-            const len = val.length.toString().padStart(2, '0');
-            return id + len + val;
-        };
-
         const vStr = valor.toFixed(2);
-        const guiPix = formatField("00", "br.gov.bcb.pix") + formatField("01", chaveUsada);
-        const merchantAccount = formatField("26", guiPix);
+        
+        const gui = formatField("00", "br.gov.bcb.pix");
+        const key = formatField("01", chaveUsada);
+        const merchant = formatField("26", gui + key);
         
         const mcc = "52040000";
         const moeda = "5303986"; 
-        const valorField = formatField("54", vStr);
+        const valField = formatField("54", vStr);
         const pais = "5802BR";
         const nomeField = formatField("59", NOME.substring(0, 25));
         const cidadeField = formatField("60", CIDADE.substring(0, 15));
         
-        const additionalData = formatField("05", "***");
-        const sub62 = formatField("62", additionalData);
+        const add = formatField("05", "***");
+        const sub62 = formatField("62", add);
 
-        let payload = "000201" + merchantAccount + mcc + moeda + valorField + pais + nomeField + cidadeField + sub62 + "6304";
+        let payload = "000201" + merchant + mcc + moeda + valField + pais + nomeField + cidadeField + sub62 + "6304";
 
         let crc = 0xFFFF;
         for (let i = 0; i < payload.length; i++) {
             crc ^= (payload.charCodeAt(i) << 8);
             for (let j = 0; j < 8; j++) {
-                if ((crc & 0x8000) !== 0) {
-                    crc = (crc << 1) ^ 0x1021;
-                } else {
-                    crc <<= 1;
-                }
+                crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : (crc << 1);
                 crc &= 0xFFFF;
             }
         }
