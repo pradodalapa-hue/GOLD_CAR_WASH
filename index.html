@@ -249,6 +249,7 @@
     let idUrlAtual = null;
     let comprovanteEnviadoZap = false;
     let pagamentoAprovadoExibido = false;
+    let transacoesProcessadas = new Set();
     const tempoInicioSessao = Date.now();
 
     function sanitizarValor(entrada) {
@@ -319,6 +320,12 @@
 
         document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         
+        // Atualiza status no Firebase para AGUARDANDO
+        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ 
+            status: "AGUARDANDO", 
+            valor_aguardando: valorCongelado.toFixed(2).replace('.', ',') 
+        }).catch(err => {});
+
         const pix = gerarPayload(valorCongelado, chaveCongelada);
         document.getElementById('qr-box').innerHTML = "";
         
@@ -362,15 +369,16 @@
         if (idUrlAtual) {
             db.ref('cobrancas/' + idUrlAtual).once('value').then(snap => {
                 const info = snap.val();
-                if (info && info.valor) {
-                    configurarPix(info.valor, info.chavePix || info.chave || CHAVE);
+                if (info && (info.valor || info.valor_aguardando)) {
+                    configurarPix(info.valor || info.valor_aguardando, info.chavePix || info.chave || CHAVE);
                 }
             });
         }
 
-        // 3. OUVINTE DO HISTÓRICO: Só dispara o sucesso se for um pagamento novo criado APÓS abrir a página
+        // 3. OUVINTE DO HISTÓRICO: Valida transações novas com base no tempo de início
         db.ref('lojas/' + LOJA_ID + '/historico_pagamentos').limitToLast(1).on('child_added', snapshot => {
             const dados = snapshot.val();
+            const key = snapshot.key;
             if (!dados) return;
 
             const timestampPagamento = dados.timestamp || dados.data_hora_ms || 0;
@@ -378,14 +386,18 @@
                 return; // Ignora histórico antigo
             }
 
+            const idTransacao = dados.id_transacao || key;
+            if (transacoesProcessadas.has(idTransacao)) return;
+
             const valorRecebido = parseFloat(dados.valor_recebido || dados.valor || 0);
             if (valorRecebido > 0 && !pagamentoAprovadoExibido) {
+                transacoesProcessadas.add(idTransacao);
                 valorCongelado = valorRecebido;
                 mostrarPagamentoAprovado();
             }
         });
 
-        // 4. OUVINTE DO CAIXA DIRETO (Disparado pelo Java/VigiaService)
+        // 4. OUVINTE DO CAIXA DIRETO (Disparado pelo Java / VigiaService)
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').on('value', snap => {
             const info = snap.val();
             if (!info) return;
@@ -399,7 +411,7 @@
             }
         });
 
-        // 5. OUVINTE DA COBRANÇA NA URL (Caso o Java atualize o status da cobrança específica)
+        // 5. OUVINTE DA COBRANÇA NA URL
         if (idUrlAtual) {
             db.ref('cobrancas/' + idUrlAtual).on('value', snap => {
                 const info = snap.val();
@@ -429,7 +441,7 @@
         badge.innerText = "PAGO";
         badge.classList.add("pago");
 
-        // Agora sim exibe a comemoração e o vídeo enviados pelo Java
+        // Exibe a comemoração e o vídeo sincronizado
         document.getElementById('pagamento-area').innerHTML = `
             <div style="position: relative; width: 100%; height: 220px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #000;">
                 <video id="video-sucesso-pos" src="${VIDEO_COMEMORACAO}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" autoplay loop muted playsinline></video>
@@ -456,6 +468,14 @@
 
         db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => {});
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => {});
+
+        // Salva no localStorage para auditoria local também
+        let hist = JSON.parse(localStorage.getItem('jdp_auditoria_' + LOJA_ID) || '[]');
+        hist.push({ 
+            data: new Date().toLocaleString('pt-BR'), 
+            valor: valorCongelado.toFixed(2).replace('.', ',') 
+        });
+        localStorage.setItem('jdp_auditoria_' + LOJA_ID, JSON.stringify(hist));
     }
 
     function enviarComprovanteZap() {
