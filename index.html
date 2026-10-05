@@ -163,7 +163,7 @@
         
         .valor-input { width: 100%; padding: 15px; background: #0a1412; border: 1px solid var(--accent); color: white; border-radius: 8px; box-sizing: border-box; font-size: 1.2rem; margin-bottom: 15px; text-align: center; font-weight: bold; }
         
-        #pagamento-area { display: none; margin-top: 25px; border-top: 1px solid #2a3a37; padding-top: 20px; }
+        #pagamento-area { display: block; margin-top: 25px; border-top: 1px solid #2a3a37; padding-top: 20px; }
         
         .pix-flex { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
         
@@ -244,13 +244,12 @@
     if (!firebase.apps.length) firebase.initializeApp(fbConfig);
     const db = firebase.database();
 
-    let valorCongelado = null;
+    let valorCongelado = 0.17; // Valor padrão inicial seguro
     let chaveCongelada = CHAVE;
     let idUrlAtual = null;
-    let dadosTravaCarregados = false;
     let comprovanteEnviadoZap = false;
     let pagamentoAprovadoExibido = false;
-    let transacoesProcessadas = new Set();
+    const tempoInicioSessao = Date.now();
 
     function sanitizarValor(entrada) {
         if (typeof entrada === 'number') return isNaN(entrada) ? 0 : entrada;
@@ -313,10 +312,14 @@
         }, 1000);
     }
 
-    function processarPix(valor, chavePersonalizada) {
-        if (!valor || valor <= 0) return;
-        const pix = gerarPayload(valor, chavePersonalizada);
-        document.getElementById('pagamento-area').style.display = 'block';
+    function configurarPix(valor, chavePersonalizada) {
+        const vSan = sanitizarValor(valor);
+        if (vSan > 0) valorCongelado = vSan;
+        if (chavePersonalizada) chaveCongelada = chavePersonalizada;
+
+        document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        
+        const pix = gerarPayload(valorCongelado, chaveCongelada);
         document.getElementById('qr-box').innerHTML = "";
         
         new QRCode(document.getElementById('qr-box'), { 
@@ -329,7 +332,7 @@
         });
 
         document.getElementById('pix-texto').innerText = pix;
-        iniciarTimer(300);
+        if (!window.timerInterval) iniciarTimer(300);
 
         setTimeout(() => {
             html2canvas(document.getElementById('pagamento-area'), { 
@@ -338,27 +341,9 @@
                 scale: 1.0
             }).then(canvas => {
                 const qrBase64 = canvas.toDataURL('image/jpeg', 0.75);
-                db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(qrBase64).catch(err => console.error(err));
+                db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(qrBase64).catch(err => {});
             });
         }, 1000);
-    }
-
-    function aplicarDados(val, chave, status) {
-        const vSan = sanitizarValor(val);
-        
-        if (vSan > 0 && !dadosTravaCarregados) {
-            valorCongelado = vSan;
-            chaveCongelada = chave || CHAVE;
-            document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-            processarPix(valorCongelado, chaveCongelada);
-            dadosTravaCarregados = true;
-        }
-
-        const statusStr = String(status || "").trim().toUpperCase();
-        if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO" || statusStr === "SUCCESS") && !pagamentoAprovadoExibido) {
-            if (vSan > 0 && !valorCongelado) valorCongelado = vSan;
-            mostrarPagamentoAprovado({ status: statusStr });
-        }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -366,53 +351,74 @@
         idUrlAtual = urlParams.get('id');
         const valUrl = urlParams.get('v') || urlParams.get('valor');
 
+        // 1. Define o valor inicial pelo link se houver
         if (valUrl) {
-            aplicarDados(valUrl, CHAVE, "pendente");
+            configurarPix(valUrl, CHAVE);
+        } else {
+            configurarPix(0.17, CHAVE); // Padrão inicial de segurança
         }
 
-        // Se houver um ID na URL, busca diretamente dele no Firebase (como o caso do R$ 0,17)
+        // 2. Busca o valor exato no Firebase se tiver ID de cobrança na URL
         if (idUrlAtual) {
             db.ref('cobrancas/' + idUrlAtual).once('value').then(snap => {
                 const info = snap.val();
-                if (info) {
-                    aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
+                if (info && info.valor) {
+                    configurarPix(info.valor, info.chavePix || info.chave || CHAVE);
                 }
             });
         }
 
+        // 3. OUVINTE DO HISTÓRICO: Só dispara o sucesso se for um pagamento novo criado APÓS abrir a página
         db.ref('lojas/' + LOJA_ID + '/historico_pagamentos').limitToLast(1).on('child_added', snapshot => {
             const dados = snapshot.val();
-            const key = snapshot.key;
             if (!dados) return;
 
-            const idTransacao = dados.id_transacao || key;
-            if (transacoesProcessadas.has(idTransacao)) return;
+            const timestampPagamento = dados.timestamp || dados.data_hora_ms || 0;
+            if (timestampPagamento > 0 && timestampPagamento < tempoInicioSessao) {
+                return; // Ignora histórico antigo
+            }
 
             const valorRecebido = parseFloat(dados.valor_recebido || dados.valor || 0);
-            if (valorRecebido > 0) {
-                transacoesProcessadas.add(idTransacao);
-                aplicarDados(valorRecebido, CHAVE, "RECEBIDO");
+            if (valorRecebido > 0 && !pagamentoAprovadoExibido) {
+                valorCongelado = valorRecebido;
+                mostrarPagamentoAprovado();
             }
         });
 
+        // 4. OUVINTE DO CAIXA DIRETO (Disparado pelo Java/VigiaService)
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').on('value', snap => {
             const info = snap.val();
-            if (info) {
-                aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
+            if (!info) return;
+
+            const statusStr = String(info.status || "").trim().toUpperCase();
+            const vVal = sanitizarValor(info.valor || info.valor_aguardando);
+
+            if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO" || statusStr === "SUCCESS") && !pagamentoAprovadoExibido) {
+                if (vVal > 0) valorCongelado = vVal;
+                mostrarPagamentoAprovado();
             }
         });
 
+        // 5. OUVINTE DA COBRANÇA NA URL (Caso o Java atualize o status da cobrança específica)
         if (idUrlAtual) {
             db.ref('cobrancas/' + idUrlAtual).on('value', snap => {
                 const info = snap.val();
-                if (info) {
-                    aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
+                if (!info) return;
+
+                const statusStr = String(info.status || "").trim().toUpperCase();
+                const vVal = sanitizarValor(info.valor || info.valor_aguardando);
+
+                if (vVal > 0) configurarPix(vVal, info.chavePix || info.chave || CHAVE);
+
+                if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO") && !pagamentoAprovadoExibido) {
+                    valorCongelado = vVal > 0 ? vVal : valorCongelado;
+                    mostrarPagamentoAprovado();
                 }
             });
         }
     });
 
-    function mostrarPagamentoAprovado(info) {
+    function mostrarPagamentoAprovado() {
         if (pagamentoAprovadoExibido) return;
         pagamentoAprovadoExibido = true;
 
@@ -423,21 +429,21 @@
         badge.innerText = "PAGO";
         badge.classList.add("pago");
 
-        document.getElementById('pagamento-area').style.display = 'block';
+        // Agora sim exibe a comemoração e o vídeo enviados pelo Java
         document.getElementById('pagamento-area').innerHTML = `
             <div style="position: relative; width: 100%; height: 220px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #000;">
                 <video id="video-sucesso-pos" src="${VIDEO_COMEMORACAO}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" autoplay loop muted playsinline></video>
                 <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); padding: 15px; text-align: center;">
                     <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #10b981; margin-bottom: 5px;"></i>
                     <div style="color: var(--gold); font-weight: 900; font-size: 1.2rem;">PAGAMENTO APROVADO!</div>
-                    <div style="color: #fff; font-size: 1rem; font-weight: bold; margin-top: 5px;">${valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00'}</div>
+                    <div style="color: #fff; font-size: 1rem; font-weight: bold; margin-top: 5px;">${valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
                 </div>
             </div>
             
             <div id="comprovante-jdp" style="background: #0a1412; border: 1px solid var(--accent); padding: 15px; border-radius: 8px; font-size: 0.8rem; color: #fff; line-height: 1.5;">
                 <div style="text-align: center; color: var(--gold); font-weight: bold; margin-bottom: 10px; font-size: 0.9rem;">COMPROVANTE DE PAGAMENTO JDP</div>
                 <div><strong>Status:</strong> APROVADO ✅</div>
-                <div><strong>Valor:</strong> ${valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00'}</div>
+                <div><strong>Valor:</strong> ${valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
                 <div><strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</div>
                 <div><strong>ID Transação:</strong> ${idUrlAtual || 'GOLD_CAR_WASH_' + Date.now()}</div>
                 <div><strong>Estabelecimento:</strong> GOLD CAR WASH</div>
@@ -448,15 +454,15 @@
             </button>
         `;
 
-        db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => console.error(err));
-        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => console.error(err));
+        db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => {});
+        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => {});
     }
 
     function enviarComprovanteZap() {
         if (comprovanteEnviadoZap) return;
         comprovanteEnviadoZap = true;
 
-        const valorFormatado = valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00';
+        const valorFormatado = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         const dataHora = new Date().toLocaleString('pt-BR');
         const idTrans = idUrlAtual || 'GOLD_CAR_WASH_' + Date.now();
 
@@ -500,12 +506,9 @@
                     btn.style.background = "var(--accent)";
                     btn.style.color = "#000";
                 }, 2000);
-            } else {
-                alert("Erro ao copiar. Selecione o código manualmente.");
             }
         } catch (err) {
             document.body.removeChild(tempInput);
-            alert("Erro ao copiar. Selecione o código manualmente.");
         }
     }
 
