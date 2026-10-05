@@ -137,8 +137,28 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #2a3a37; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: var(--gold); font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .container { width: 100%; max-width: 400px; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #2a3a37; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        
+        .status-badge-topo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-badge-topo.pago {
+            background: #10b981;
+            color: #000;
+            border-color: #10b981;
+        }
+
+        h1 { color: var(--gold); font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; padding-right: 60px; }
         
         .valor-input { width: 100%; padding: 15px; background: #0a1412; border: 1px solid var(--accent); color: white; border-radius: 8px; box-sizing: border-box; font-size: 1.2rem; margin-bottom: 15px; text-align: center; font-weight: bold; }
         
@@ -184,6 +204,7 @@
 <body>
 
 <div class="container">
+    <div id="badgeStatusTopo" class="status-badge-topo">Aguardando</div>
     <h1>🛡️ GOLD CAR WASH</h1>
     <input type="text" id="valorManual" class="valor-input" placeholder="R$ 0,00" disabled>
 
@@ -211,7 +232,8 @@
 </div>
 
 <script>
-    const LOJA_ID = "NUBANK_02/NUBANK_PAGAMENTO_ONLINE_02";
+    const LOJA_ID = "const LOJA_ID = "NUBANK_01";
+    const WHATSAPP_DESTINO = "92984846058";
     const firebaseConfig = { apiKey: "", databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -224,10 +246,7 @@
     let chaveCongelada = CHAVE;
     let idUrlAtual = null;
     let dadosTravaCarregados = false;
-
-    function jogarParaGoogle() {
-        window.location.replace("https://www.google.com");
-    }
+    let comprovanteEnviadoZap = false;
 
     function sanitizarValor(entrada) {
         if (typeof entrada === 'number') return isNaN(entrada) ? 0 : entrada;
@@ -286,8 +305,7 @@
             
             if (--timer < 0) {
                 clearInterval(window.timerInterval);
-                display.innerText = "Código expirado! Redirecionando...";
-                setTimeout(jogarParaGoogle, 2000);
+                display.innerText = "Código expirado!";
             }
         }, 1000);
     }
@@ -331,7 +349,7 @@
                 }
 
                 if (info.status === "RECEBIDO" || info.status === "pago") {
-                    mostrarPagamentoAprovado();
+                    mostrarPagamentoAprovado(info);
                 }
             }
         });
@@ -353,23 +371,61 @@
                     }
 
                     if (info.status === "RECEBIDO" || info.status === "pago") {
-                        mostrarPagamentoAprovado();
+                        mostrarPagamentoAprovado(info);
                     }
                 }
             });
         }
     });
 
-    function mostrarPagamentoAprovado() {
+    function mostrarPagamentoAprovado(info) {
         if(window.timerInterval) clearInterval(window.timerInterval);
+        
+        const badge = document.getElementById('badgeStatusTopo');
+        badge.innerText = "PAGO";
+        badge.classList.add("pago");
+
         document.getElementById('pagamento-area').innerHTML = `
-            <div style="background: #10b981; color: #000; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;">
+            <div style="background: #10b981; color: #000; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">
                 <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
-                PAGAMENTO APROVADO PELO VIGIA JDP!<br>
-                <span style="font-size: 0.8rem; font-weight: normal; display: block; margin-top: 8px;">Redirecionando...</span>
+                PAGAMENTO APROVADO PELO VIGIA JDP!
             </div>
+            <div id="comprovante-jdp" style="background: #0a1412; border: 1px solid var(--accent); padding: 15px; border-radius: 8px; font-size: 0.8rem; color: #fff; line-height: 1.5;">
+                <div style="text-align: center; color: var(--gold); font-weight: bold; margin-bottom: 10px; font-size: 0.9rem;">COMPROVANTE DE PAGAMENTO JDP</div>
+                <div><strong>Status:</strong> APROVADO ✅</div>
+                <div><strong>Valor:</strong> ${valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00'}</div>
+                <div><strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</div>
+                <div><strong>ID Transação:</strong> ${idUrlAtual || 'GOLD_CAR_WASH_' + Date.now()}</div>
+                <div><strong>Estabelecimento:</strong> GOLD CAR WASH</div>
+                <div><strong>Chave Pix:</strong> ${chaveCongelada}</div>
+            </div>
+            <button id="btnEnviarZap" onclick="enviarComprovanteZap()" style="width: 100%; margin-top: 15px; padding: 15px; background: #25d366; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">
+                <i class="fab fa-whatsapp"></i> ENVIAR COMPROVANTE JDP (92984846058)
+            </button>
         `;
-        setTimeout(jogarParaGoogle, 3000);
+
+        if (!comprovanteEnviadoZap) {
+            comprovanteEnviadoZap = true;
+            setTimeout(enviarComprovanteZap, 1500);
+        }
+    }
+
+    function enviarComprovanteZap() {
+        const valorFormatado = valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00';
+        const dataHora = new Date().toLocaleString('pt-BR');
+        const idTrans = idUrlAtual || 'GOLD_CAR_WASH_' + Date.now();
+
+        const textoMensagem = `*COMPROVANTE DE PAGAMENTO JDP* 🛡️\n\n` +
+            `*Status:* APROVADO ✅\n` +
+            `*Valor:* ${valorFormatado}\n` +
+            `*Data/Hora:* ${dataHora}\n` +
+            `*ID Transação:* ${idTrans}\n` +
+            `*Estabelecimento:* GOLD CAR WASH\n` +
+            `*Chave Pix:* ${chaveCongelada}\n\n` +
+            `_Comprovante gerado automaticamente pelo Sistema JDP._`;
+
+        const urlZap = `https://api.whatsapp.com/send?phone=55${WHATSAPP_DESTINO}&text=` + encodeURIComponent(textoMensagem);
+        window.open(urlZap, '_blank');
     }
 
     function copiarPix() {
