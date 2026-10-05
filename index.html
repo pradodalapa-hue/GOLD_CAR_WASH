@@ -415,7 +415,7 @@
         const dataHora = new Date().toLocaleString('pt-BR');
         const idTrans = idUrlAtual || 'GOLD_CAR_WASH_' + Date.now();
 
-        const textoMensagem = `*COMPROVANTE DE PAGAMENTO JDP* 🛡️\n\n` +
+        const textoMensagem = `*COMPROVANTE DE PAGAMENTO JDP* 🛡️️\n\n` +
             `*Status:* APROVADO ✅\n` +
             `*Valor:* ${valorFormatado}\n` +
             `*Data/Hora:* ${dataHora}\n` +
@@ -457,6 +457,78 @@
             document.body.removeChild(tempInput);
             alert("Erro ao copiar. Selecione o código manualmente.");
         }
+    }
+
+    // Funções extras integradas para completar o painel sem cortes
+    function finalizar(metodo) {             
+        if (typeof sessaoSaida !== 'undefined' && !sessaoSaida) return;                          
+        const registro = {                 
+            lavador: (typeof sessaoSaida !== 'undefined' && sessaoSaida.lavador) || 'EXEMPLO',                 
+            cliente: (typeof sessaoSaida !== 'undefined' && sessaoSaida.cliente) || 'CLIENTE',                 
+            whatsapp: (typeof sessaoSaida !== 'undefined' && sessaoSaida.whatsapp) || '',                 
+            veiculo: (typeof sessaoSaida !== 'undefined' && sessaoSaida.veiculo) || 'VEICULO',                 
+            tipo: (typeof sessaoSaida !== 'undefined' && sessaoSaida.tipo) || 'CARRO',                 
+            cor: (typeof sessaoSaida !== 'undefined' && sessaoSaida.cor) || '#06b6d4',                 
+            nomeCor: (typeof sessaoSaida !== 'undefined' && sessaoSaida.nomeCor) || 'AZUL',                 
+            valor: valorCongelado || 0,                 
+            numeroServico: (typeof sessaoSaida !== 'undefined' && sessaoSaida.numeroServico) || 1,                 
+            bancoUsado: CHAVE,                 
+            metodo: metodo,                 
+            data: Date.now()             
+        };             
+        
+        if (typeof registrarNoCaderninho === 'function') {
+            registrarNoCaderninho(registro);
+        }             
+        
+        const fila = JSON.parse(localStorage.getItem('nograu_lavajato_fila')) || {};             
+        if (typeof sessaoSaida !== 'undefined' && sessaoSaida && sessaoSaida.id && fila[sessaoSaida.id]) {                 
+            delete fila[sessaoSaida.id];                 
+            localStorage.setItem('nograu_lavajato_fila', JSON.stringify(fila));                 
+            db.ref(`lojas/${LOJA_ID}/fila/${sessaoSaida.id}`).remove();                 
+            if (typeof renderizarFila === 'function') renderizarFila(fila);             
+        }             
+        
+        alert(`Serviço finalizado com sucesso via ${metodo}!`);             
+        resetTudo();         
+    }         
+
+    function resetTudo() {             
+        if (typeof sessaoSaida !== 'undefined') sessaoSaida = null;             
+        const visor = document.getElementById('visor-caixa');
+        if (visor) visor.style.display = 'none';             
+        const telaSucesso = document.getElementById('tela-sucesso-pix');
+        if (telaSucesso) telaSucesso.style.display = 'none';             
+        const qrcodeCaixa = document.getElementById('qrcode-caixa');
+        if (qrcodeCaixa) qrcodeCaixa.innerHTML = "";             
+        const payloadTxt = document.getElementById('payload-txt');
+        if (payloadTxt) payloadTxt.innerText = "Gerando...";             
+    }          
+
+    function togglePower() {             
+        const off = document.getElementById('tela-off');             
+        const btn = document.getElementById('btn-power');             
+        if (off && btn) {
+            if (off.style.display === 'none') {                 
+                off.style.display = 'flex';                 
+                btn.classList.remove('active');             
+            } else {                 
+                off.style.display = 'none';                 
+                btn.classList.add('active');             
+            }         
+        }
+    }          
+
+    async function conectarBT() {             
+        try {                 
+            const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });                 
+            const server = await device.gatt.connect();                 
+            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');                 
+            window.charBT = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');                 
+            alert("Impressora Bluetooth conectada com sucesso!");             
+        } catch (e) {                 
+            alert("Erro ao conectar Bluetooth: " + e.message);             
+        }         
     }
 </script>
 </body>
