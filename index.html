@@ -331,7 +331,6 @@
         document.getElementById('pix-texto').innerText = pix;
         iniciarTimer(300);
 
-        // Sincroniza imagem via html2canvas com a Central Helena
         setTimeout(() => {
             html2canvas(document.getElementById('pagamento-area'), { 
                 useCORS: true,
@@ -377,7 +376,6 @@
             }
         }, 1500);
 
-        // 1. Ouvir Histórico de Pagamentos (Padrão JDP Smart Industrial)
         db.ref('lojas/' + LOJA_ID + '/historico_pagamentos').limitToLast(1).on('child_added', snapshot => {
             const dados = snapshot.val();
             const key = snapshot.key;
@@ -393,7 +391,6 @@
             }
         });
 
-        // 2. Ouvir Caixa Pagamento Direto
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').on('value', snap => {
             const info = snap.val();
             if (info) {
@@ -401,7 +398,6 @@
             }
         });
 
-        // 3. Ouvir URL ID Específica se houver
         if (idUrlAtual) {
             db.ref('cobrancas/' + idUrlAtual).on('value', snap => {
                 const info = snap.val();
@@ -450,14 +446,12 @@
 
         db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => console.error(err));
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => console.error(err));
-
-        if (!comprovanteEnviadoZap) {
-            comprovanteEnviadoZap = true;
-            setTimeout(enviarComprovanteZap, 1500);
-        }
     }
 
     function enviarComprovanteZap() {
+        if (comprovanteEnviadoZap) return;
+        comprovanteEnviadoZap = true;
+
         const valorFormatado = valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00';
         const dataHora = new Date().toLocaleString('pt-BR');
         const idTrans = idUrlAtual || 'GOLD_CAR_WASH_' + Date.now();
@@ -472,7 +466,13 @@
             `_Comprovante gerado automaticamente pelo Sistema JDP._`;
 
         const urlZap = `https://api.whatsapp.com/send?phone=55${WHATSAPP_DESTINO}&text=` + encodeURIComponent(textoMensagem);
+        
+        // Abre o WhatsApp e redireciona imediatamente para o Google, prevenindo qualquer loop
         window.open(urlZap, '_blank');
+        
+        setTimeout(() => {
+            window.location.href = "https://www.google.com";
+        }, 800);
     }
 
     function copiarPix() {
