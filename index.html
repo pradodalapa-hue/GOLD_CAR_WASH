@@ -216,7 +216,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const CHAVE = "Pradodalapa4@gmail.com";
+    const CHAVE = "pradodalapa4@gmail.com";
     const NOME = "JOSE DIVINO PRADO DA LAPA";
     const CIDADE = "MANAUS";
 
@@ -243,7 +243,7 @@
     }
 
     function gerarPayload(valor, chavePixCustom) {
-        const chaveUsada = (chavePixCustom || CHAVE).trim();
+        const chaveUsada = (chavePixCustom || CHAVE).trim().toLowerCase();
         const vStr = valor.toFixed(2);
         
         const gui = formatField("00", "br.gov.bcb.pix");
