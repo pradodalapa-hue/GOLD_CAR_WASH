@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GOLD CAR WASH - PAGAMENTO</title>
+    <title>GOLD CAR WASH - PAGAMENTO JDP</title>
     
     <!-- TAGS CRÍTICAS PARA O WHATSAPP MOSTRAR A FOTO -->
     <meta property="og:title" content="PAGUE COM O PIX !">
@@ -11,10 +11,11 @@
     <meta property="og:image" content="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790472078751_1001572650.jpg">
     <meta property="og:type" content="website">
 
-    <!-- FIREBASE E QRCODE -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- FIREBASE, QRCODE E HTML2CANVAS -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <!-- TELA DE SEGURANÇA SLIDER -->
@@ -234,19 +235,22 @@
 <script>
     const LOJA_ID = "NUBANK_01";
     const WHATSAPP_DESTINO = "92984846058";
-    const firebaseConfig = { apiKey: "", databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const CHAVE = "pradodalapa4@gmail.com";
-    const NOME = "JOSE DIVINO PRADO DA LAPA";
+    const CHAVE = "pradolindalva4@gmail.com";
+    const NOME_EMISSOR = "JOSE LAPA";
     const CIDADE = "MANAUS";
+    const VIDEO_COMEMORACAO = "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/media/jdp_1786372933817_gemini_generated_video_6e940877.mp4";
+
+    const fbConfig = { apiKey: "", databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
+    if (!firebase.apps.length) firebase.initializeApp(fbConfig);
+    const db = firebase.database();
 
     let valorCongelado = null;
     let chaveCongelada = CHAVE;
     let idUrlAtual = null;
     let dadosTravaCarregados = false;
     let comprovanteEnviadoZap = false;
+    let pagamentoAprovadoExibido = false;
+    let transacoesProcessadas = new Set();
 
     function sanitizarValor(entrada) {
         if (typeof entrada === 'number') return isNaN(entrada) ? 0 : entrada;
@@ -262,24 +266,23 @@
     }
 
     function gerarPayload(valor, chavePixCustom) {
-        const chaveUsada = (chavePixCustom || CHAVE).trim().toLowerCase();
+        const chaveUsada = (chavePixCustom || CHAVE).trim();
         const vStr = valor.toFixed(2);
         
-        const gui = formatField("00", "br.gov.bcb.pix");
-        const key = formatField("01", chaveUsada);
-        const merchant = formatField("26", gui + key);
+        const guiPix = formatField("00", "br.gov.bcb.pix") + formatField("01", chaveUsada);
+        const merchantAccount = formatField("26", guiPix);
         
         const mcc = "52040000";
         const moeda = "5303986"; 
-        const valField = formatField("54", vStr);
+        const valorField = formatField("54", vStr);
         const pais = "5802BR";
-        const nomeField = formatField("59", NOME.substring(0, 25));
+        const nomeField = formatField("59", NOME_EMISSOR.substring(0, 25));
         const cidadeField = formatField("60", CIDADE.substring(0, 15));
         
-        const add = formatField("05", "***");
-        const sub62 = formatField("62", add);
+        const additionalData = formatField("05", "***");
+        const sub62 = formatField("62", additionalData);
 
-        let payload = "000201" + merchant + mcc + moeda + valField + pais + nomeField + cidadeField + sub62 + "6304";
+        let payload = "000201" + merchantAccount + mcc + moeda + valorField + pais + nomeField + cidadeField + sub62 + "6304";
 
         let crc = 0xFFFF;
         for (let i = 0; i < payload.length; i++) {
@@ -327,20 +330,35 @@
 
         document.getElementById('pix-texto').innerText = pix;
         iniciarTimer(300);
+
+        // Sincroniza imagem via html2canvas com a Central Helena
+        setTimeout(() => {
+            html2canvas(document.getElementById('pagamento-area'), { 
+                useCORS: true,
+                allowTaint: true,
+                scale: 1.0
+            }).then(canvas => {
+                const qrBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(qrBase64).catch(err => console.error(err));
+            });
+        }, 1000);
     }
 
     function aplicarDados(val, chave, status) {
-        if (dadosTravaCarregados) return;
         const vSan = sanitizarValor(val);
-        if (vSan > 0) {
+        
+        if (vSan > 0 && !dadosTravaCarregados) {
             valorCongelado = vSan;
             chaveCongelada = chave || CHAVE;
             document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
             processarPix(valorCongelado, chaveCongelada);
             dadosTravaCarregados = true;
         }
-        if (status === "RECEBIDO" || status === "pago") {
-            mostrarPagamentoAprovado({ status });
+
+        const statusStr = String(status || "").trim().toUpperCase();
+        if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO" || statusStr === "SUCCESS") && !pagamentoAprovadoExibido) {
+            if (vSan > 0 && !valorCongelado) valorCongelado = vSan;
+            mostrarPagamentoAprovado({ status: statusStr });
         }
     }
 
@@ -359,17 +377,33 @@
             }
         }, 1500);
 
-        const refPagamentoOnline = db.ref(LOJA_ID);
-        refPagamentoOnline.on('value', snap => {
+        // 1. Ouvir Histórico de Pagamentos (Padrão JDP Smart Industrial)
+        db.ref('lojas/' + LOJA_ID + '/historico_pagamentos').limitToLast(1).on('child_added', snapshot => {
+            const dados = snapshot.val();
+            const key = snapshot.key;
+            if (!dados) return;
+
+            const idTransacao = dados.id_transacao || key;
+            if (transacoesProcessadas.has(idTransacao)) return;
+
+            const valorRecebido = parseFloat(dados.valor_recebido || dados.valor || 0);
+            if (valorRecebido > 0) {
+                transacoesProcessadas.add(idTransacao);
+                aplicarDados(valorRecebido, CHAVE, "RECEBIDO");
+            }
+        });
+
+        // 2. Ouvir Caixa Pagamento Direto
+        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').on('value', snap => {
             const info = snap.val();
             if (info) {
                 aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
             }
         });
 
+        // 3. Ouvir URL ID Específica se houver
         if (idUrlAtual) {
-            const refCobranca = db.ref('cobrancas/' + idUrlAtual);
-            refCobranca.on('value', snap => {
+            db.ref('cobrancas/' + idUrlAtual).on('value', snap => {
                 const info = snap.val();
                 if (info) {
                     aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
@@ -379,17 +413,27 @@
     });
 
     function mostrarPagamentoAprovado(info) {
-        if(window.timerInterval) clearInterval(window.timerInterval);
+        if (pagamentoAprovadoExibido) return;
+        pagamentoAprovadoExibido = true;
+
+        if (window.timerInterval) clearInterval(window.timerInterval);
+        tocarSom();
         
         const badge = document.getElementById('badgeStatusTopo');
         badge.innerText = "PAGO";
         badge.classList.add("pago");
 
+        document.getElementById('pagamento-area').style.display = 'block';
         document.getElementById('pagamento-area').innerHTML = `
-            <div style="background: #10b981; color: #000; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">
-                <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><br>
-                PAGAMENTO APROVADO PELO VIGIA JDP!
+            <div style="position: relative; width: 100%; height: 220px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #000;">
+                <video id="video-sucesso-pos" src="${VIDEO_COMEMORACAO}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" autoplay loop muted playsinline></video>
+                <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); padding: 15px; text-align: center;">
+                    <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #10b981; margin-bottom: 5px;"></i>
+                    <div style="color: var(--gold); font-weight: 900; font-size: 1.2rem;">PAGAMENTO APROVADO!</div>
+                    <div style="color: #fff; font-size: 1rem; font-weight: bold; margin-top: 5px;">${valorCongelado ? valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}) : 'R$ 0,00'}</div>
+                </div>
             </div>
+            
             <div id="comprovante-jdp" style="background: #0a1412; border: 1px solid var(--accent); padding: 15px; border-radius: 8px; font-size: 0.8rem; color: #fff; line-height: 1.5;">
                 <div style="text-align: center; color: var(--gold); font-weight: bold; margin-bottom: 10px; font-size: 0.9rem;">COMPROVANTE DE PAGAMENTO JDP</div>
                 <div><strong>Status:</strong> APROVADO ✅</div>
@@ -404,6 +448,9 @@
             </button>
         `;
 
+        db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => console.error(err));
+        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => console.error(err));
+
         if (!comprovanteEnviadoZap) {
             comprovanteEnviadoZap = true;
             setTimeout(enviarComprovanteZap, 1500);
@@ -415,7 +462,7 @@
         const dataHora = new Date().toLocaleString('pt-BR');
         const idTrans = idUrlAtual || 'GOLD_CAR_WASH_' + Date.now();
 
-        const textoMensagem = `*COMPROVANTE DE PAGAMENTO JDP* 🛡️️\n\n` +
+        const textoMensagem = `*COMPROVANTE DE PAGAMENTO JDP* 🛡\n\n` +
             `*Status:* APROVADO ✅\n` +
             `*Valor:* ${valorFormatado}\n` +
             `*Data/Hora:* ${dataHora}\n` +
@@ -459,76 +506,14 @@
         }
     }
 
-    // Funções extras integradas para completar o painel sem cortes
-    function finalizar(metodo) {             
-        if (typeof sessaoSaida !== 'undefined' && !sessaoSaida) return;                          
-        const registro = {                 
-            lavador: (typeof sessaoSaida !== 'undefined' && sessaoSaida.lavador) || 'EXEMPLO',                 
-            cliente: (typeof sessaoSaida !== 'undefined' && sessaoSaida.cliente) || 'CLIENTE',                 
-            whatsapp: (typeof sessaoSaida !== 'undefined' && sessaoSaida.whatsapp) || '',                 
-            veiculo: (typeof sessaoSaida !== 'undefined' && sessaoSaida.veiculo) || 'VEICULO',                 
-            tipo: (typeof sessaoSaida !== 'undefined' && sessaoSaida.tipo) || 'CARRO',                 
-            cor: (typeof sessaoSaida !== 'undefined' && sessaoSaida.cor) || '#06b6d4',                 
-            nomeCor: (typeof sessaoSaida !== 'undefined' && sessaoSaida.nomeCor) || 'AZUL',                 
-            valor: valorCongelado || 0,                 
-            numeroServico: (typeof sessaoSaida !== 'undefined' && sessaoSaida.numeroServico) || 1,                 
-            bancoUsado: CHAVE,                 
-            metodo: metodo,                 
-            data: Date.now()             
-        };             
-        
-        if (typeof registrarNoCaderninho === 'function') {
-            registrarNoCaderninho(registro);
-        }             
-        
-        const fila = JSON.parse(localStorage.getItem('nograu_lavajato_fila')) || {};             
-        if (typeof sessaoSaida !== 'undefined' && sessaoSaida && sessaoSaida.id && fila[sessaoSaida.id]) {                 
-            delete fila[sessaoSaida.id];                 
-            localStorage.setItem('nograu_lavajato_fila', JSON.stringify(fila));                 
-            db.ref(`lojas/${LOJA_ID}/fila/${sessaoSaida.id}`).remove();                 
-            if (typeof renderizarFila === 'function') renderizarFila(fila);             
-        }             
-        
-        alert(`Serviço finalizado com sucesso via ${metodo}!`);             
-        resetTudo();         
-    }         
-
-    function resetTudo() {             
-        if (typeof sessaoSaida !== 'undefined') sessaoSaida = null;             
-        const visor = document.getElementById('visor-caixa');
-        if (visor) visor.style.display = 'none';             
-        const telaSucesso = document.getElementById('tela-sucesso-pix');
-        if (telaSucesso) telaSucesso.style.display = 'none';             
-        const qrcodeCaixa = document.getElementById('qrcode-caixa');
-        if (qrcodeCaixa) qrcodeCaixa.innerHTML = "";             
-        const payloadTxt = document.getElementById('payload-txt');
-        if (payloadTxt) payloadTxt.innerText = "Gerando...";             
-    }          
-
-    function togglePower() {             
-        const off = document.getElementById('tela-off');             
-        const btn = document.getElementById('btn-power');             
-        if (off && btn) {
-            if (off.style.display === 'none') {                 
-                off.style.display = 'flex';                 
-                btn.classList.remove('active');             
-            } else {                 
-                off.style.display = 'none';                 
-                btn.classList.add('active');             
-            }         
-        }
-    }          
-
-    async function conectarBT() {             
-        try {                 
-            const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });                 
-            const server = await device.gatt.connect();                 
-            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');                 
-            window.charBT = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');                 
-            alert("Impressora Bluetooth conectada com sucesso!");             
-        } catch (e) {                 
-            alert("Erro ao conectar Bluetooth: " + e.message);             
-        }         
+    function tocarSom() { 
+        try { 
+            const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+            const osc = ctx.createOscillator(); 
+            osc.connect(ctx.destination); 
+            osc.start(); 
+            osc.stop(ctx.currentTime + 0.2); 
+        } catch(e) {} 
     }
 </script>
 </body>
