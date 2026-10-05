@@ -250,9 +250,7 @@
     let dadosTravaCarregados = false;
     let comprovanteEnviadoZap = false;
     let pagamentoAprovadoExibido = false;
-    
-    // Marca o momento em que a página abriu para ignorar pagamentos antigos já ocorridos antes desta sessão
-    const tempoInicioSessao = Date.now();
+    let transacoesProcessadas = new Set();
 
     function sanitizarValor(entrada) {
         if (typeof entrada === 'number') return isNaN(entrada) ? 0 : entrada;
@@ -345,14 +343,21 @@
         }, 1000);
     }
 
-    function aplicarDados(val, chave) {
+    function aplicarDados(val, chave, status) {
         const vSan = sanitizarValor(val);
-        if (vSan > 0) {
+        
+        if (vSan > 0 && !dadosTravaCarregados) {
             valorCongelado = vSan;
             chaveCongelada = chave || CHAVE;
             document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
             processarPix(valorCongelado, chaveCongelada);
             dadosTravaCarregados = true;
+        }
+
+        const statusStr = String(status || "").trim().toUpperCase();
+        if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO" || statusStr === "SUCCESS") && !pagamentoAprovadoExibido) {
+            if (vSan > 0 && !valorCongelado) valorCongelado = vSan;
+            mostrarPagamentoAprovado({ status: statusStr });
         }
     }
 
@@ -362,56 +367,46 @@
         const valUrl = urlParams.get('v') || urlParams.get('valor');
 
         if (valUrl) {
-            aplicarDados(valUrl, CHAVE);
+            aplicarDados(valUrl, CHAVE, "pendente");
         }
 
-        setTimeout(() => {
-            if (!dadosTravaCarregados) {
-                aplicarDados(10.00, CHAVE);
-            }
-        }, 1500);
+        // Se houver um ID na URL, busca diretamente dele no Firebase (como o caso do R$ 0,17)
+        if (idUrlAtual) {
+            db.ref('cobrancas/' + idUrlAtual).once('value').then(snap => {
+                const info = snap.val();
+                if (info) {
+                    aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
+                }
+            });
+        }
 
-        // 1. Ouvir Histórico de Pagamentos (Apenas novos pagamentos gerados APÓS abrir esta tela)
         db.ref('lojas/' + LOJA_ID + '/historico_pagamentos').limitToLast(1).on('child_added', snapshot => {
             const dados = snapshot.val();
+            const key = snapshot.key;
             if (!dados) return;
 
-            // Valida timestamp para garantir que é um pagamento novo e não histórico antigo preso no banco
-            const timestampPagamento = dados.timestamp || dados.data_hora_ms || 0;
-            if (timestampPagamento > 0 && timestampPagamento < tempoInicioSessao) {
-                return; // Ignora pagamentos antigos do passado
-            }
+            const idTransacao = dados.id_transacao || key;
+            if (transacoesProcessadas.has(idTransacao)) return;
 
             const valorRecebido = parseFloat(dados.valor_recebido || dados.valor || 0);
-            if (valorRecebido > 0 && !pagamentoAprovadoExibido) {
-                aplicarDados(valorRecebido, CHAVE);
-                mostrarPagamentoAprovado(dados);
+            if (valorRecebido > 0) {
+                transacoesProcessadas.add(idTransacao);
+                aplicarDados(valorRecebido, CHAVE, "RECEBIDO");
             }
         });
 
-        // 2. Ouvir Caixa Pagamento Direto (Apenas se o status for explicitamente novo/pago agora)
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').on('value', snap => {
             const info = snap.val();
             if (info) {
-                const statusStr = String(info.status || "").trim().toUpperCase();
-                const vVal = sanitizarValor(info.valor || info.valor_aguardando);
-
-                if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO" || statusStr === "SUCCESS") && !pagamentoAprovadoExibido) {
-                    if (vVal > 0) valorCongelado = vVal;
-                    mostrarPagamentoAprovado(info);
-                }
+                aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
             }
         });
 
-        // 3. Ouvir URL ID Específica se houver
         if (idUrlAtual) {
             db.ref('cobrancas/' + idUrlAtual).on('value', snap => {
                 const info = snap.val();
                 if (info) {
-                    const statusStr = String(info.status || "").trim().toUpperCase();
-                    if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO") && !pagamentoAprovadoExibido) {
-                        mostrarPagamentoAprovado(info);
-                    }
+                    aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
                 }
             });
         }
@@ -453,7 +448,6 @@
             </button>
         `;
 
-        // Limpa o caixa no Firebase para liberar o pátio e evitar loops futuros
         db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => console.error(err));
         db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => console.error(err));
     }
