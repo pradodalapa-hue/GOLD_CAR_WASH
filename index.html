@@ -232,7 +232,7 @@
 </div>
 
 <script>
-    const LOJA_ID = "const LOJA_ID = "NUBANK_01";
+    const LOJA_ID = "NUBANK_01";
     const WHATSAPP_DESTINO = "92984846058";
     const firebaseConfig = { apiKey: "", databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -329,28 +329,41 @@
         iniciarTimer(300);
     }
 
+    function aplicarDados(val, chave, status) {
+        if (dadosTravaCarregados) return;
+        const vSan = sanitizarValor(val);
+        if (vSan > 0) {
+            valorCongelado = vSan;
+            chaveCongelada = chave || CHAVE;
+            document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+            processarPix(valorCongelado, chaveCongelada);
+            dadosTravaCarregados = true;
+        }
+        if (status === "RECEBIDO" || status === "pago") {
+            mostrarPagamentoAprovado({ status });
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         idUrlAtual = urlParams.get('id');
+        const valUrl = urlParams.get('v') || urlParams.get('valor');
+
+        if (valUrl) {
+            aplicarDados(valUrl, CHAVE, "pendente");
+        }
+
+        setTimeout(() => {
+            if (!dadosTravaCarregados) {
+                aplicarDados(10.00, CHAVE, "pendente");
+            }
+        }, 1500);
 
         const refPagamentoOnline = db.ref(LOJA_ID);
         refPagamentoOnline.on('value', snap => {
             const info = snap.val();
             if (info) {
-                const val = sanitizarValor(info.valor || info.valor_aguardando);
-                const chaveUrl = info.chavePix || info.chave || CHAVE;
-
-                if (val > 0 && !dadosTravaCarregados) {
-                    valorCongelado = val;
-                    chaveCongelada = chaveUrl;
-                    document.getElementById('valorManual').value = val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-                    processarPix(valorCongelado, chaveCongelada);
-                    dadosTravaCarregados = true;
-                }
-
-                if (info.status === "RECEBIDO" || info.status === "pago") {
-                    mostrarPagamentoAprovado(info);
-                }
+                aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
             }
         });
 
@@ -359,20 +372,7 @@
             refCobranca.on('value', snap => {
                 const info = snap.val();
                 if (info) {
-                    const val = sanitizarValor(info.valor || info.valor_aguardando);
-                    const chaveUrl = info.chavePix || info.chave || CHAVE;
-
-                    if (val > 0 && !dadosTravaCarregados) {
-                        valorCongelado = val;
-                        chaveCongelada = chaveUrl;
-                        document.getElementById('valorManual').value = val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-                        processarPix(valorCongelado, chaveCongelada);
-                        dadosTravaCarregados = true;
-                    }
-
-                    if (info.status === "RECEBIDO" || info.status === "pago") {
-                        mostrarPagamentoAprovado(info);
-                    }
+                    aplicarDados(info.valor || info.valor_aguardando, info.chavePix || info.chave, info.status);
                 }
             });
         }
