@@ -153,23 +153,45 @@
             gap: 8px;
         }
 
-        .input-para-onde-box {
+        /* PAINEL DE ENDEREÇOS (DE / PARA) */
+        .painel-enderecos-box {
             padding: 14px 16px;
             background: #fff;
             display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
+            flex-direction: column;
+            gap: 10px;
             border-top: 1px solid #f1f5f9;
         }
 
-        .input-para-onde-box input {
+        .linha-input-endereco {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .linha-input-endereco input {
             border: none;
             outline: none;
             width: 100%;
-            font-size: 18px;
-            font-weight: 800;
+            font-size: 14px;
+            font-weight: 700;
             color: #0f172a;
+            background: transparent;
+        }
+
+        .btn-usar-gps {
+            font-size: 11px;
+            font-weight: 800;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
         }
 
         /* DRAWER DO PERFIL DO USUÁRIO */
@@ -225,16 +247,8 @@
             transition: background 0.2s;
         }
 
-        .menu-item:active {
-            background: #f1f5f9;
-        }
-
-        .menu-item i {
-            width: 22px;
-            text-align: center;
-            font-size: 18px;
-            color: #64748b;
-        }
+        .menu-item:active { background: #f1f5f9; }
+        .menu-item i { width: 22px; text-align: center; font-size: 18px; color: #64748b; }
 
         .drawer-footer {
             padding: 16px 20px;
@@ -267,10 +281,7 @@
             background: #090d16;
         }
 
-        .leaflet-div-icon {
-            background: transparent !important;
-            border: none !important;
-        }
+        .leaflet-div-icon { background: transparent !important; border: none !important; }
 
         @keyframes radarOndas {
             0% { transform: scale(0.3); opacity: 1.0; }
@@ -317,6 +328,33 @@
             cursor: pointer;
             font-size: 18px;
             color: #0f172a;
+        }
+
+        /* CARD DE RADAR E CONTAGEM REGRESSIVA */
+        #hud-radar-contador {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1002;
+            background: #0f172a;
+            border: 2px solid #facc15;
+            border-radius: 20px;
+            padding: 12px 20px;
+            color: #fff;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 380px;
+        }
+
+        .badge-timer-radar {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: #facc15;
         }
 
         /* SHEET INFERIOR COM OPÇÕES 99 */
@@ -371,49 +409,13 @@
             border-color: #22c55e;
         }
 
-        .opcao-esquerda {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .opcao-img {
-            width: 50px;
-            height: 35px;
-            object-fit: contain;
-        }
-
-        .opcao-titulo {
-            font-size: 16px;
-            font-weight: 800;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .opcao-sub {
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 500;
-        }
-
-        .opcao-direita {
-            text-align: right;
-        }
-
-        .opcao-preco {
-            font-size: 18px;
-            font-weight: 900;
-            color: #0f172a;
-        }
-
-        .opcao-preco-riscado {
-            font-size: 12px;
-            color: #94a3b8;
-            text-decoration: line-through;
-            font-weight: 600;
-        }
+        .opcao-esquerda { display: flex; align-items: center; gap: 12px; }
+        .opcao-img { width: 50px; height: 35px; object-fit: contain; }
+        .opcao-titulo { font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+        .opcao-sub { font-size: 12px; color: #64748b; font-weight: 500; }
+        .opcao-direita { text-align: right; }
+        .opcao-preco { font-size: 18px; font-weight: 900; color: #0f172a; }
+        .opcao-preco-riscado { font-size: 12px; color: #94a3b8; text-decoration: line-through; font-weight: 600; }
 
         .controles-negocia {
             display: flex;
@@ -425,15 +427,8 @@
         }
 
         .btn-math-sm {
-            width: 26px;
-            height: 26px;
-            background: #fff;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 26px; height: 26px; background: #fff; border: none; border-radius: 6px;
+            font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .footer-pagamento-solicitar {
@@ -575,6 +570,15 @@
         </div>
     </div>
 
+    <!-- HUD REGRESSIVO DE BUSCA RADAR -->
+    <div id="hud-radar-contador">
+        <div class="badge-timer-radar" id="timer-regressivo-display">01:00</div>
+        <div>
+            <h4 class="text-xs font-bold text-slate-200">Procurando motoristas...</h4>
+            <p class="text-[11px] text-slate-400" id="subtext-status-radar">Enviando oferta no mapa</p>
+        </div>
+    </div>
+
     <!-- MAPA FULLSCREEN COM RADAR (ESTÁGIO 2) -->
     <div id="mapa-full"></div>
 
@@ -603,9 +607,18 @@
                     <span>Cupom de 20% OFF expira em 2 dia(s)</span>
                 </div>
 
-                <div class="input-para-onde-box" onclick="focarBusca()">
-                    <i class="fas fa-search text-slate-800 text-lg"></i>
-                    <input type="text" id="input-destino-home" placeholder="Para onde" onkeypress="verificarEnter(event)">
+                <!-- CAMPO DE ORIGEM (DE) E DESTINO (PARA) -->
+                <div class="painel-enderecos-box">
+                    <div class="linha-input-endereco">
+                        <i class="fas fa-circle-dot text-green-500 text-sm"></i>
+                        <input type="text" id="input-origem-home" placeholder="De: Ex: Rua B ou Ponto Atual">
+                        <span class="btn-usar-gps" onclick="usarLocalizacaoAtualGPS()"><i class="fas fa-crosshairs"></i> GPS</span>
+                    </div>
+
+                    <div class="linha-input-endereco">
+                        <i class="fas fa-location-dot text-red-500 text-sm"></i>
+                        <input type="text" id="input-destino-home" placeholder="Para: Ex: Rua A" onkeypress="verificarEnter(event)">
+                    </div>
                 </div>
             </div>
 
@@ -731,35 +744,9 @@
         const db = firebase.database();
         const LOJA_ID = "LEOVARDIOS_burguer_2026";
 
-        // COORDENADAS PRE-CARREGADAS DAS PRINCIPAIS CIDADES E CAPITAIS DE CADA ESTADO
         const COORDENADAS_FIXAS = {
-            "AC": { "Rio Branco": [-9.9749, -67.8243], "Cruzeiro do Sul": [-7.6347, -72.6718] },
-            "AL": { "Maceió": [-9.6658, -35.7353], "Arapiraca": [-9.7558, -36.6606] },
-            "AP": { "Macapá": [0.0349, -51.0694], "Santana": [-0.0583, -51.1817] },
-            "AM": { "Uarini": [-2.9903, -65.1083], "Manaus": [-3.1190, -60.0217], "Coari": [-4.0849, -63.1417], "Tefé": [-3.3542, -64.7181], "Parintins": [-2.6289, -56.7358], "Itacoatiara": [-3.1431, -58.4442], "Manacapuru": [-3.2997, -60.6208] },
-            "BA": { "Salvador": [-12.9714, -38.5014], "Feira de Santana": [-12.2664, -38.9664], "Vitória da Conquista": [-14.8661, -40.8394] },
-            "CE": { "Fortaleza": [-3.7319, -38.5267], "Caucaia": [-3.7361, -38.6531], "Juazeiro do Norte": [-7.2131, -39.3153] },
-            "DF": { "Brasília": [-15.7975, -47.8919] },
-            "ES": { "Vitória": [-20.3155, -40.3128], "Vila Velha": [-20.3297, -40.2925], "Serra": [-20.1286, -40.3078] },
-            "GO": { "Goiânia": [-16.6869, -49.2648], "Aparecida de Goiânia": [-16.8233, -49.2439], "Anápolis": [-16.3267, -48.9533] },
-            "MA": { "São Luís": [-2.5307, -44.3068], "Imperatriz": [-5.5264, -47.4917] },
-            "MT": { "Cuiabá": [-15.6010, -56.0974], "Várzea Grande": [-15.6469, -56.1325], "Rondonópolis": [-16.4678, -54.6361] },
-            "MS": { "Campo Grande": [-20.4697, -54.6201], "Dourados": [-22.2231, -54.8064] },
-            "MG": { "Belo Horizonte": [-19.9167, -43.9345], "Uberlândia": [-18.9186, -48.2772], "Juiz de Fora": [-21.7642, -43.3503] },
-            "PA": { "Belém": [-1.4558, -48.4902], "Ananindeua": [-1.3658, -48.3722], "Santarém": [-2.4431, -54.7083], "Marabá": [-5.3686, -49.1178] },
-            "PB": { "João Pessoa": [-7.1195, -34.8450], "Campina Grande": [-7.2306, -35.8811] },
-            "PR": { "Curitiba": [-25.4284, -49.2733], "Londrina": [-23.3045, -51.1696], "Maringá": [-23.4210, -51.9331] },
-            "PE": { "Recife": [-8.0476, -34.8770], "Jaboatão dos Guararapes": [-8.1764, -35.0033], "Olinda": [-8.0089, -34.8553] },
-            "PI": { "Teresina": [-5.0920, -42.8038], "Parnaíba": [-2.9047, -41.7767] },
-            "RJ": { "Rio de Janeiro": [-22.9068, -43.1729], "São Gonçalo": [-22.8269, -43.0539], "Duque de Caxias": [-22.7856, -43.3117], "Niterói": [-22.8833, -43.1036] },
-            "RN": { "Natal": [-5.7945, -35.2110], "Mossoró": [-5.1878, -37.3442] },
-            "RS": { "Porto Alegre": [-30.0346, -51.2177], "Caxias do Sul": [-29.1681, -51.1794], "Canoas": [-29.9178, -51.1842] },
-            "RO": { "Porto Velho": [-8.7619, -63.9039], "Ji-Paraná": [-10.8778, -61.9514] },
-            "RR": { "Boa Vista": [2.8235, -60.6758] },
-            "SC": { "Florianópolis": [-27.5954, -48.5480], "Joinville": [-26.3045, -48.8464], "Blumenau": [-26.9194, -49.0661] },
-            "SP": { "São Paulo": [-23.5505, -46.6333], "Guarulhos": [-23.4628, -46.5333], "Campinas": [-22.9099, -47.0626], "São Bernardo do Campo": [-23.6939, -46.5650], "Santo André": [-23.6639, -46.5383] },
-            "SE": { "Aracaju": [-10.9472, -37.0731], "Nossa Senhora do Socorro": [-10.8547, -37.1264] },
-            "TO": { "Palmas": [-10.2491, -48.3242], "Araguaína": [-7.1928, -48.2044] }
+            "AM": { "Uarini": [-2.9903, -65.1083], "Manaus": [-3.1190, -60.0217] },
+            "SP": { "São Paulo": [-23.5505, -46.6333] }
         };
 
         let mapPreview = null, mapFull = null;
@@ -767,13 +754,14 @@
         let tipoSelecionado = 'Moto';
         let valorNegocia = 29.40;
         let usuarioLogado = null;
+        let timerRadarInterval = null;
+        let tempoRestante = 60;
 
         window.addEventListener('DOMContentLoaded', () => {
             atualizarCidadesPorEstado();
             verificarLoginSalvo();
         });
 
-        // BUSCA TODAS AS CIDADES DE QUALQUER ESTADO VIA API IBGE
         async function atualizarCidadesPorEstado() {
             const estado = document.getElementById('cad-estado').value;
             const selectCidade = document.getElementById('cad-cidade');
@@ -788,7 +776,6 @@
                     selectCidade.innerHTML += `<option value="${item.nome}">${item.nome}</option>`;
                 });
             } catch (err) {
-                // FALLBACK LOCAL CASO O OFFLINE/REDE FALHE
                 const cidadesLocais = COORDENADAS_FIXAS[estado] || {};
                 selectCidade.innerHTML = "";
                 Object.keys(cidadesLocais).forEach(cidade => {
@@ -820,11 +807,8 @@
             if (!nome || !tel) return alert("Por favor, preencha seu nome e WhatsApp.");
 
             usuarioLogado = { nome, telefone: tel, estado, cidade };
-
-            // SALVA NO LOCALSTORAGE
             localStorage.setItem('jdp_usuario_cadastrado', JSON.stringify(usuarioLogado));
 
-            // SALVA NO FIREBASE REALTIME DATABASE
             db.ref(`lojas/${LOJA_ID}/usuarios/${tel}`).set({
                 ...usuarioLogado,
                 data_cadastro: new Date().toISOString()
@@ -837,7 +821,16 @@
             });
         }
 
-        /* FUNÇÕES DO DRAWER DO PERFIL */
+        function usarLocalizacaoAtualGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    document.getElementById('input-origem-home').value = "Minha Localização Atual (GPS)";
+                }, () => {
+                    alert("Não foi possível obter o GPS. Digite o nome da rua de origem.");
+                });
+            }
+        }
+
         function abrirPerfilDrawer() {
             const overlay = document.getElementById('menu-perfil-overlay');
             const drawer = document.getElementById('menu-perfil-drawer');
@@ -853,9 +846,7 @@
             const drawer = document.getElementById('menu-perfil-drawer');
             drawer.style.left = '-85%';
             overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 300);
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
 
         function efetuarSairLogin() {
@@ -871,11 +862,9 @@
         }
 
         async function obteCoordenadasCidade(uf, cidade) {
-            // VERIFICA SE TEM NO BANCO FIXO PRIMEIRO
             if (COORDENADAS_FIXAS[uf] && COORDENADAS_FIXAS[uf][cidade]) {
                 return COORDENADAS_FIXAS[uf][cidade];
             }
-            // BUSCA COORDENADAS REAIS NOMINATIM CASO SEJA UM MUNICÍPIO ESPECÍFICO
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cidade + ', ' + uf + ', Brasil')}`);
                 const data = await res.json();
@@ -883,21 +872,15 @@
                     return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
                 }
             } catch (e) {}
-
-            return [-2.9903, -65.1083]; // PADRÃO UARINI AM
+            return [-2.9903, -65.1083];
         }
 
         async function iniciarMapaPreview(uf, cidade) {
             const coords = await obteCoordenadasCidade(uf, cidade);
-
-            if (mapPreview) {
-                mapPreview.remove();
-                mapPreview = null;
-            }
+            if (mapPreview) { mapPreview.remove(); mapPreview = null; }
 
             mapPreview = L.map('mapa-preview', { zoomControl: false, attributionControl: false }).setView(coords, 14);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapPreview);
-
             L.circleMarker(coords, { radius: 8, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.8 }).addTo(mapPreview);
         }
 
@@ -924,25 +907,21 @@
         }
 
         function voltarParaHome() {
+            clearInterval(timerRadarInterval);
+            document.getElementById('hud-radar-contador').style.display = 'none';
             document.getElementById('estagio-home').style.display = 'block';
             document.getElementById('mapa-full').style.display = 'none';
             document.getElementById('btn-voltar-home').style.display = 'none';
             document.getElementById('sheet-opcoes-corrida').style.display = 'none';
             
-            if (mapFull) {
-                mapFull.remove();
-                mapFull = null;
-            }
+            if (mapFull) { mapFull.remove(); mapFull = null; }
         }
 
         async function iniciarMapaRadarNoTelao() {
             const coords = usuarioLogado ? await obteCoordenadasCidade(usuarioLogado.estado, usuarioLogado.cidade) : [-2.9903, -65.1083];
 
             setTimeout(() => {
-                if (mapFull) {
-                    mapFull.remove();
-                    mapFull = null;
-                }
+                if (mapFull) { mapFull.remove(); mapFull = null; }
 
                 mapFull = L.map('mapa-full', { zoomControl: false, attributionControl: false }).setView(coords, 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapFull);
@@ -955,7 +934,6 @@
                 });
                 
                 L.marker(coords, { icon: radarIcon }).addTo(mapFull);
-
                 mapFull.invalidateSize();
             }, 250);
         }
@@ -982,10 +960,17 @@
             }
         }
 
+        /* EVENTO DO RADAR E DISPARO AO CONFIRMAR CORRIDA */
         function solicitarCorridaFinal() {
+            const origem = document.getElementById('input-origem-home').value.trim() || "Localização Atual";
             const destino = document.getElementById('input-destino-home').value.trim() || `${usuarioLogado.cidade} Centro`;
             const idCorrida = "JDP-C" + Math.floor(Math.random() * 90000 + 10000);
 
+            // 1. Oculta sheet de opções e exibe HUD do Radar
+            document.getElementById('sheet-opcoes-corrida').style.display = 'none';
+            document.getElementById('hud-radar-contador').style.display = 'flex';
+
+            // 2. Registra no Firebase
             db.ref(`lojas/${LOJA_ID}/producao_pendente/${idCorrida}`).set({
                 id: idCorrida,
                 passageiro_tel: usuarioLogado ? usuarioLogado.telefone : "SemTel",
@@ -993,13 +978,32 @@
                 cidade: usuarioLogado ? usuarioLogado.cidade : "Uarini",
                 estado: usuarioLogado ? usuarioLogado.estado : "AM",
                 categoria: tipoSelecionado,
+                origem: origem,
                 destino: destino,
                 valor_ofertado: valorSelecionado.toFixed(2),
                 status: "Pendente",
                 hora: new Date().toLocaleTimeString()
-            }).then(() => {
-                alert(`Solicitação de ${tipoSelecionado} enviada com sucesso em ${usuarioLogado ? usuarioLogado.cidade : 'Uarini'}! Procurando motoristas...`);
             });
+
+            // 3. Inicia contagem regressiva de 1 minuto
+            tempoRestante = 60;
+            clearInterval(timerRadarInterval);
+            
+            timerRadarInterval = setInterval(() => {
+                tempoRestante--;
+                const segs = tempoRestante < 10 ? '0' + tempoRestante : tempoRestante;
+                document.getElementById('timer-regressivo-display').innerText = `00:${segs}`;
+
+                if (tempoRestante <= 0) {
+                    clearInterval(timerRadarInterval);
+                    // Aplica Zoom Out/Ajuste no Mapa caso não encontre veículos imediatamente
+                    if (mapFull) {
+                        mapFull.setZoom(13);
+                    }
+                    document.getElementById('subtext-status-radar').innerText = "Expandindo área de busca...";
+                    alert(`Nenhum veiculo (${tipoSelecionado}) respondeu em 1 minuto. Expandindo o radar de busca na cidade!`);
+                }
+            }, 1000);
         }
     </script>
 </body>
