@@ -1,546 +1,1006 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GOLD CAR WASH - PAGAMENTO JDP</title>
+    <title>JDP MOBILIDADE - BRASIL SUPREME</title>
     
-    <!-- TAGS CRÍTICAS PARA O WHATSAPP MOSTRAR A FOTO -->
-    <meta property="og:title" content="PAGUE COM O PIX !">
-    <meta property="og:description" content="Pague com o Pix rápido e seguro.">
-    <meta property="og:image" content="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790472078751_1001572650.jpg">
-    <meta property="og:type" content="website">
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- FIREBASE, QRCODE E HTML2CANVAS -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Firebase SDK Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
-    <!-- TELA DE SEGURANÇA SLIDER -->
-    <script>
-    (function() {
-        const FOTO_BLOQUEIO = "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1790458867299_Screenshot_20260926_173717_Chrome_Beta.jpg";
-        let tentativas = 0;
-        const maxTentativas = 3;
-
-        function criarTelaSeguranca() {
-            if (document.getElementById('jdp-seguranca-overlay')) return;
-
-            const overlay = document.createElement('div');
-            overlay.id = 'jdp-seguranca-overlay';
-            overlay.style.cssText = `
-                position: fixed; inset: 0; z-index: 999999;
-                background: #020617; display: flex; flex-direction: column;
-                align-items: center; justify-content: center; font-family: 'Inter', sans-serif;
-                color: #fff; user-select: none; padding: 20px;
-            `;
-
-            overlay.innerHTML = `
-                <div style="background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 25px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
-                    <h3 style="color: #fde047; font-size: 15px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Área Restrita - Vigia JDP</h3>
-                    <p style="color: #94a3b8; font-size: 11px; margin-bottom: 25px;">Arraste a alavanca totalmente para o lado para confirmar acesso.</p>
-                    
-                    <div id="jdp-slider-track" style="position: relative; width: 100%; height: 50px; background: #020617; border-radius: 25px; border: 1px solid #1e293b; overflow: hidden; display: flex; align-items: center;">
-                        <span id="jdp-slider-text" style="position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 800; color: #64748b; letter-spacing: 1px; pointer-events: none; text-transform: uppercase;">Puxe para liberar ➔</span>
-                        <div id="jdp-slider-btn" style="position: absolute; left: 0; width: 50px; height: 50px; background: #fde047; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; font-size: 18px; box-shadow: 0 0 10px rgba(253,224,71,0.5);"></div>
-                    </div>
-                    <p id="jdp-tentativas-txt" style="color: #ef4444; font-size: 10px; margin-top: 15px; font-weight: bold; min-height: 14px;"></p>
-                </div>
-            `;
-
-            document.documentElement.appendChild(overlay);
-
-            const btn = document.getElementById('jdp-slider-btn');
-            const track = document.getElementById('jdp-slider-track');
-            const txtTentativas = document.getElementById('jdp-tentativas-txt');
-            let arrastando = false;
-
-            function iniciarArrasto() { arrastando = true; }
-
-            function moverArrasto(e) {
-                if (!arrastando) return;
-                const trackRect = track.getBoundingClientRect();
-                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                let deslocamento = clientX - trackRect.left - 25;
-
-                const maxDeslocamento = track.clientWidth - 50;
-                if (deslocamento < 0) deslocamento = 0;
-                if (deslocamento > maxDeslocamento) deslocamento = maxDeslocamento;
-
-                btn.style.left = deslocamento + 'px';
-
-                if (deslocamento >= maxDeslocamento - 5) {
-                    arrastando = false;
-                    sucessoAcesso();
-                }
-            }
-
-            function pararArrasto() {
-                if (!arrastando) return;
-                arrastando = false;
-                
-                const trackRect = track.getBoundingClientRect();
-                const btnRect = btn.getBoundingClientRect();
-                const maxDeslocamento = track.clientWidth - 50;
-
-                if ((btnRect.left - trackRect.left) < (maxDeslocamento - 15)) {
-                    btn.style.left = '0px';
-                    tentativas++;
-                    
-                    if (tentativas >= maxTentativas) {
-                        bloqueioTotalDefinitivo();
-                    } else {
-                        txtTentativas.innerText = `Tentativa incorreta (${tentativas}/${maxTentativas}). Tente novamente.`;
-                    }
-                }
-            }
-
-            btn.addEventListener('mousedown', iniciarArrasto);
-            window.addEventListener('mousemove', moverArrasto);
-            window.addEventListener('mouseup', pararArrasto);
-
-            btn.addEventListener('touchstart', iniciarArrasto);
-            window.addEventListener('touchmove', moverArrasto);
-            window.addEventListener('touchend', pararArrasto);
-        }
-
-        function sucessoAcesso() {
-            const overlay = document.getElementById('jdp-seguranca-overlay');
-            if (overlay) overlay.remove();
-        }
-
-        function bloqueioTotalDefinitivo() {
-            document.body.innerHTML = `
-                <div style="width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; margin: 0; padding: 0; overflow: hidden; position: fixed; inset: 0; z-index: 9999999;">
-                    <img src="${FOTO_BLOQUEIO}" style="width: 100vw; height: 100vh; object-fit: cover; margin: 0; padding: 0; display: block;" alt="Bloqueio">
-                </div>
-            `;
-            window.stop();
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', criarTelaSeguranca);
-        } else {
-            criarTelaSeguranca();
-        }
-    })();
-    </script>
+    <!-- Leaflet Engine (Mapa) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+         
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { 
-            --bg: #0b1614; 
-            --card: #14211e; 
-            --accent: #20b396; 
-            --text: #ffffff; 
-            --gold: #D4AF37;
+        :root {
+            --yellow-99: #ffcc00;
+            --green-99: #00c853;
+            --bg-light: #f4f5f7;
+            --jdp-gold-gradient: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #2a3a37; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
-        
-        .status-badge-topo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #1e293b;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-transform: uppercase;
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body, html {
+            background: var(--bg-light);
+            color: #0f172a;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
         }
-        .status-badge-topo.pago {
-            background: #10b981;
+
+        /* MODAL DE CADASTRO E LOGIN */
+        #modal-cadastro {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.96);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card-cadastro {
+            width: 100%;
+            max-width: 420px;
+            background: #0f172a;
+            border: 2px solid #1e293b;
+            border-radius: 24px;
+            padding: 24px;
+            color: #fff;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        .input-group-cad { margin-bottom: 14px; }
+        .input-group-cad label { display: block; font-size: 11px; font-family: 'Orbitron', sans-serif; color: #06b6d4; margin-bottom: 5px; }
+        .input-campo-cad {
+            width: 100%;
+            padding: 13px 15px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #020617;
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+        }
+        .input-campo-cad:focus {
+            border-color: #06b6d4;
+        }
+
+        .btn-cadastrar-cad {
+            width: 100%;
+            padding: 15px;
+            background: var(--jdp-gold-gradient);
+            border: none;
+            border-radius: 14px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
             color: #000;
-            border-color: #10b981;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(179, 135, 40, 0.4);
         }
 
-        h1 { color: var(--gold); font-size: 1.2rem; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; padding-right: 60px; }
-        
-        .valor-input { width: 100%; padding: 15px; background: #0a1412; border: 1px solid var(--accent); color: white; border-radius: 8px; box-sizing: border-box; font-size: 1.2rem; margin-bottom: 15px; text-align: center; font-weight: bold; }
-        
-        #pagamento-area { display: block; margin-top: 25px; border-top: 1px solid #2a3a37; padding-top: 20px; }
-        
-        .pix-flex { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
-        
-        #qr-box { 
-            background: #ffffff; 
-            padding: 6px; 
-            width: 105px; 
-            height: 105px; 
-            border-radius: 8px; 
-            flex-shrink: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            border: 2px solid #ffffff;
-        }
-        #qr-box img, #qr-box canvas { 
-            width: 100% !important; 
-            height: 100% !important; 
-            object-fit: contain; 
+        /* ESTÁGIO 1: BOAS-VINDAS */
+        #topo-amarelo {
+            background: var(--yellow-99);
+            padding: 20px 20px 60px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .instrucoes { font-size: 0.75rem; color: #a0a0a0; line-height: 1.3; }
-        .pix-code { background: #0a1412; padding: 10px; border: 1px solid #2a3a37; font-size: 0.65rem; color: #888; word-break: break-all; margin: 10px 0; border-radius: 5px; max-height: 70px; overflow-y: auto; }
-        .timer { color: var(--accent); font-size: 0.9rem; text-align: center; margin-top: 10px; font-weight: bold; }
-        
-        .status-aguardando {
-            background: #1e293b;
-            border: 1px dashed var(--gold);
-            color: var(--gold);
-            padding: 12px;
-            border-radius: 8px;
+        .avatar-user {
+            width: 45px;
+            height: 45px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .badge-dot {
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            border: 2px solid #fff;
+        }
+
+        .container-principal {
+            margin-top: -45px;
+            padding: 0 16px 20px 16px;
+        }
+
+        .card-mapa-box {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            position: relative;
+        }
+
+        #mapa-preview {
+            height: 170px;
+            width: 100%;
+        }
+
+        .cupom-banner {
+            background: var(--green-99);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-para-onde-box {
+            padding: 14px 16px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .input-para-onde-box input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        /* DRAWER DO PERFIL DO USUÁRIO */
+        #menu-perfil-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9990;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #menu-perfil-drawer {
+            position: fixed;
+            top: 0;
+            left: -85%;
+            width: 85%;
+            max-width: 320px;
+            height: 100%;
+            background: #ffffff;
+            z-index: 9991;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+        }
+
+        .drawer-header {
+            padding: 24px 20px 16px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .drawer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .menu-item:active {
+            background: #f1f5f9;
+        }
+
+        .menu-item i {
+            width: 22px;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 18px;
+            color: #64748b;
+        }
+
+        .drawer-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        .btn-sair-perfil {
+            width: 100%;
+            padding: 12px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* ESTÁGIO 2: MAPA EXPANDIDO */
+        #mapa-full {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            display: none;
+            background: #090d16;
+        }
+
+        .leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        @keyframes radarOndas {
+            0% { transform: scale(0.3); opacity: 1.0; }
+            100% { transform: scale(4.0); opacity: 0; }
+        }
+
+        .radar-pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120px;
+            height: 120px;
+            margin-left: -60px;
+            margin-top: -60px;
+            border-radius: 50%;
+            border: 3px solid #facc15;
+            background: rgba(250, 204, 21, 0.15);
+            animation: radarOndas 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .leaflet-tile {
+            filter: brightness(0.9) invert(100%) contrast(1.3) hue-rotate(200deg) saturate(0.3);
+        }
+
+        .header-busca-voltar {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .btn-back-circle {
+            width: 44px;
+            height: 44px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 18px;
+            color: #0f172a;
+        }
+
+        /* SHEET INFERIOR COM OPÇÕES 99 */
+        #sheet-opcoes-corrida {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: #ffffff;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 14px 16px 20px 16px;
+            box-shadow: 0 -8px 25px rgba(0,0,0,0.25);
+            display: none;
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
+        .drag-handle {
+            width: 36px;
+            height: 4px;
+            background: #cbd5e1;
+            border-radius: 2px;
+            margin: 0 auto 12px auto;
+        }
+
+        .cupom-tag-off {
+            color: var(--green-99);
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .opcao-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 10px;
+            border-radius: 16px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .opcao-item.selected {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .opcao-esquerda {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .opcao-img {
+            width: 50px;
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .opcao-titulo {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .opcao-sub {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .opcao-direita {
+            text-align: right;
+        }
+
+        .opcao-preco {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .opcao-preco-riscado {
+            font-size: 12px;
+            color: #94a3b8;
+            text-decoration: line-through;
+            font-weight: 600;
+        }
+
+        .controles-negocia {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 10px;
+        }
+
+        .btn-math-sm {
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border: none;
+            border-radius: 6px;
             font-weight: bold;
-            margin-top: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .footer-pagamento-solicitar {
+            margin-top: 10px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 12px;
+        }
+
+        .linha-pagamento {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .btn-solicitar-99 {
+            width: 100%;
+            padding: 16px;
+            background: var(--yellow-99);
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 900;
+            color: #000;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 204, 0, 0.4);
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="badgeStatusTopo" class="status-badge-topo">Aguardando</div>
-    <h1>🛡️ GOLD CAR WASH</h1>
-    <input type="text" id="valorManual" class="valor-input" placeholder="R$ 0,00" disabled>
-
-    <div id="pagamento-area">
-        <h3 style="text-align: center; color: var(--accent); margin-top: 0; font-size: 1rem;">Finalize seu pagamento</h3>
-        
-        <div class="pix-flex">
-            <div id="qr-box"></div>
-            <div class="instrucoes">
-                <strong>Escaneie o QR Code</strong><br>
-                com o app do seu banco ou <strong>copie o código Pix</strong>.<br><br>
-                1. Abra o app<br>2. Escaneie<br>3. Confirme
+    <!-- MODAL DE CADASTRO E SELEÇÃO DE ESTADO E CIDADE -->
+    <div id="modal-cadastro">
+        <div class="card-cadastro">
+            <div style="text-align: center; margin-bottom: 18px;">
+                <h2 style="font-family:'Orbitron'; color:var(--gold); font-size:18px;">JDP MOBILIDADE 🚗</h2>
+                <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Selecione qualquer estado e cidade do Brasil</p>
             </div>
-        </div>
-        
-        <div id="pix-texto" class="pix-code"></div>
-        <button id="btnCopiar" class="btn-principal" onclick="copiarPix()" style="width: 100%; padding: 15px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">COPIAR CÓDIGO PIX</button>
-        
-        <div class="status-aguardando">
-            <i class="fas fa-shield-alt"></i> AGUARDANDO CONFIRMAÇÃO DO VIGIA JDP...
-        </div>
 
-        <div class="timer" id="timer">Tempo restante: 05:00</div>
-    </div>
-</div>
+            <div class="input-group-cad">
+                <label>NOME COMPLETO</label>
+                <input type="text" id="cad-nome" class="input-campo-cad" placeholder="Ex: José Divino">
+            </div>
 
-<script>
-    const LOJA_ID = "NUBANK_01";
-    const WHATSAPP_DESTINO = "92984846058";
-    const CHAVE = "pradolindalva4@gmail.com";
-    const NOME_EMISSOR = "JOSE LAPA";
-    const CIDADE = "MANAUS";
-    const VIDEO_COMEMORACAO = "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/media/jdp_1786372933817_gemini_generated_video_6e940877.mp4";
+            <div class="input-group-cad">
+                <label>TELEFONE (WHATSAPP)</label>
+                <input type="text" id="cad-tel" class="input-campo-cad" placeholder="Ex: 92991112233">
+            </div>
 
-    const fbConfig = { apiKey: "", databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
-    if (!firebase.apps.length) firebase.initializeApp(fbConfig);
-    const db = firebase.database();
-
-    let valorCongelado = 0.17; // Valor padrão inicial seguro
-    let chaveCongelada = CHAVE;
-    let idUrlAtual = null;
-    let comprovanteEnviadoZap = false;
-    let pagamentoAprovadoExibido = false;
-    let transacoesProcessadas = new Set();
-    const tempoInicioSessao = Date.now();
-
-    function sanitizarValor(entrada) {
-        if (typeof entrada === 'number') return isNaN(entrada) ? 0 : entrada;
-        if (!entrada) return 0;
-        let limpo = String(entrada).replace(/[^\d,\.]/g, '').replace(',', '.');
-        let num = parseFloat(limpo);
-        return isNaN(num) ? 0 : num;
-    }
-
-    function formatField(id, val) {
-        const len = val.length.toString().padStart(2, '0');
-        return id + len + val;
-    }
-
-    function gerarPayload(valor, chavePixCustom) {
-        const chaveUsada = (chavePixCustom || CHAVE).trim();
-        const vStr = valor.toFixed(2);
-        
-        const guiPix = formatField("00", "br.gov.bcb.pix") + formatField("01", chaveUsada);
-        const merchantAccount = formatField("26", guiPix);
-        
-        const mcc = "52040000";
-        const moeda = "5303986"; 
-        const valorField = formatField("54", vStr);
-        const pais = "5802BR";
-        const nomeField = formatField("59", NOME_EMISSOR.substring(0, 25));
-        const cidadeField = formatField("60", CIDADE.substring(0, 15));
-        
-        const additionalData = formatField("05", "***");
-        const sub62 = formatField("62", additionalData);
-
-        let payload = "000201" + merchantAccount + mcc + moeda + valorField + pais + nomeField + cidadeField + sub62 + "6304";
-
-        let crc = 0xFFFF;
-        for (let i = 0; i < payload.length; i++) {
-            crc ^= (payload.charCodeAt(i) << 8);
-            for (let j = 0; j < 8; j++) {
-                crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : (crc << 1);
-                crc &= 0xFFFF;
-            }
-        }
-        return payload + crc.toString(16).toUpperCase().padStart(4, '0');
-    }
-
-    function iniciarTimer(duracaoEmSegundos) {
-        let timer = duracaoEmSegundos;
-        const display = document.getElementById('timer');
-        if(window.timerInterval) clearInterval(window.timerInterval);
-        window.timerInterval = setInterval(() => {
-            let minutos = parseInt(timer / 60, 10);
-            let segundos = parseInt(timer % 60, 10);
-            minutos = minutos < 10 ? "0" + minutos : minutos;
-            segundos = segundos < 10 ? "0" + segundos : segundos;
-            display.innerText = "Tempo restante: " + minutos + ":" + segundos;
-            
-            if (--timer < 0) {
-                clearInterval(window.timerInterval);
-                display.innerText = "Código expirado!";
-            }
-        }, 1000);
-    }
-
-    function configurarPix(valor, chavePersonalizada) {
-        const vSan = sanitizarValor(valor);
-        if (vSan > 0) valorCongelado = vSan;
-        if (chavePersonalizada) chaveCongelada = chavePersonalizada;
-
-        document.getElementById('valorManual').value = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-        
-        // Atualiza status no Firebase para AGUARDANDO
-        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ 
-            status: "AGUARDANDO", 
-            valor_aguardando: valorCongelado.toFixed(2).replace('.', ',') 
-        }).catch(err => {});
-
-        const pix = gerarPayload(valorCongelado, chaveCongelada);
-        document.getElementById('qr-box').innerHTML = "";
-        
-        new QRCode(document.getElementById('qr-box'), { 
-            text: pix, 
-            width: 95, 
-            height: 95,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-        });
-
-        document.getElementById('pix-texto').innerText = pix;
-        if (!window.timerInterval) iniciarTimer(300);
-
-        setTimeout(() => {
-            html2canvas(document.getElementById('pagamento-area'), { 
-                useCORS: true,
-                allowTaint: true,
-                scale: 1.0
-            }).then(canvas => {
-                const qrBase64 = canvas.toDataURL('image/jpeg', 0.75);
-                db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(qrBase64).catch(err => {});
-            });
-        }, 1000);
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        idUrlAtual = urlParams.get('id');
-        const valUrl = urlParams.get('v') || urlParams.get('valor');
-
-        // 1. Define o valor inicial pelo link se houver
-        if (valUrl) {
-            configurarPix(valUrl, CHAVE);
-        } else {
-            configurarPix(0.17, CHAVE); // Padrão inicial de segurança
-        }
-
-        // 2. Busca o valor exato no Firebase se tiver ID de cobrança na URL
-        if (idUrlAtual) {
-            db.ref('cobrancas/' + idUrlAtual).once('value').then(snap => {
-                const info = snap.val();
-                if (info && (info.valor || info.valor_aguardando)) {
-                    configurarPix(info.valor || info.valor_aguardando, info.chavePix || info.chave || CHAVE);
-                }
-            });
-        }
-
-        // 3. OUVINTE DO HISTÓRICO: Valida transações novas com base no tempo de início
-        db.ref('lojas/' + LOJA_ID + '/historico_pagamentos').limitToLast(1).on('child_added', snapshot => {
-            const dados = snapshot.val();
-            const key = snapshot.key;
-            if (!dados) return;
-
-            const timestampPagamento = dados.timestamp || dados.data_hora_ms || 0;
-            if (timestampPagamento > 0 && timestampPagamento < tempoInicioSessao) {
-                return; // Ignora histórico antigo
-            }
-
-            const idTransacao = dados.id_transacao || key;
-            if (transacoesProcessadas.has(idTransacao)) return;
-
-            const valorRecebido = parseFloat(dados.valor_recebido || dados.valor || 0);
-            if (valorRecebido > 0 && !pagamentoAprovadoExibido) {
-                transacoesProcessadas.add(idTransacao);
-                valorCongelado = valorRecebido;
-                mostrarPagamentoAprovado();
-            }
-        });
-
-        // 4. OUVINTE DO CAIXA DIRETO (Disparado pelo Java / VigiaService)
-        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').on('value', snap => {
-            const info = snap.val();
-            if (!info) return;
-
-            const statusStr = String(info.status || "").trim().toUpperCase();
-            const vVal = sanitizarValor(info.valor || info.valor_aguardando);
-
-            if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO" || statusStr === "SUCCESS") && !pagamentoAprovadoExibido) {
-                if (vVal > 0) valorCongelado = vVal;
-                mostrarPagamentoAprovado();
-            }
-        });
-
-        // 5. OUVINTE DA COBRANÇA NA URL
-        if (idUrlAtual) {
-            db.ref('cobrancas/' + idUrlAtual).on('value', snap => {
-                const info = snap.val();
-                if (!info) return;
-
-                const statusStr = String(info.status || "").trim().toUpperCase();
-                const vVal = sanitizarValor(info.valor || info.valor_aguardando);
-
-                if (vVal > 0) configurarPix(vVal, info.chavePix || info.chave || CHAVE);
-
-                if ((statusStr === "RECEBIDO" || statusStr === "PAGO" || statusStr === "APROVADO") && !pagamentoAprovadoExibido) {
-                    valorCongelado = vVal > 0 ? vVal : valorCongelado;
-                    mostrarPagamentoAprovado();
-                }
-            });
-        }
-    });
-
-    function mostrarPagamentoAprovado() {
-        if (pagamentoAprovadoExibido) return;
-        pagamentoAprovadoExibido = true;
-
-        if (window.timerInterval) clearInterval(window.timerInterval);
-        tocarSom();
-        
-        const badge = document.getElementById('badgeStatusTopo');
-        badge.innerText = "PAGO";
-        badge.classList.add("pago");
-
-        // Exibe a comemoração e o vídeo sincronizado
-        document.getElementById('pagamento-area').innerHTML = `
-            <div style="position: relative; width: 100%; height: 220px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #000;">
-                <video id="video-sucesso-pos" src="${VIDEO_COMEMORACAO}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" autoplay loop muted playsinline></video>
-                <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); padding: 15px; text-align: center;">
-                    <i class="fas fa-check-circle" style="font-size: 2.5rem; color: #10b981; margin-bottom: 5px;"></i>
-                    <div style="color: var(--gold); font-weight: 900; font-size: 1.2rem;">PAGAMENTO APROVADO!</div>
-                    <div style="color: #fff; font-size: 1rem; font-weight: bold; margin-top: 5px;">${valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="input-group-cad">
+                    <label>ESTADO (UF)</label>
+                    <select id="cad-estado" class="input-campo-cad" onchange="atualizarCidadesPorEstado()">
+                        <option value="AC">Acre (AC)</option>
+                        <option value="AL">Alagoas (AL)</option>
+                        <option value="AP">Amapá (AP)</option>
+                        <option value="AM" selected>Amazonas (AM)</option>
+                        <option value="BA">Bahia (BA)</option>
+                        <option value="CE">Ceará (CE)</option>
+                        <option value="DF">Distrito Federal (DF)</option>
+                        <option value="ES">Espírito Santo (ES)</option>
+                        <option value="GO">Goiás (GO)</option>
+                        <option value="MA">Maranhão (MA)</option>
+                        <option value="MT">Mato Grosso (MT)</option>
+                        <option value="MS">Mato Grosso do Sul (MS)</option>
+                        <option value="MG">Minas Gerais (MG)</option>
+                        <option value="PA">Pará (PA)</option>
+                        <option value="PB">Paraíba (PB)</option>
+                        <option value="PR">Paraná (PR)</option>
+                        <option value="PE">Pernambuco (PE)</option>
+                        <option value="PI">Piauí (PI)</option>
+                        <option value="RJ">Rio de Janeiro (RJ)</option>
+                        <option value="RN">Rio Grande do Norte (RN)</option>
+                        <option value="RS">Rio Grande do Sul (RS)</option>
+                        <option value="RO">Rondônia (RO)</option>
+                        <option value="RR">Roraima (RR)</option>
+                        <option value="SC">Santa Catarina (SC)</option>
+                        <option value="SP">São Paulo (SP)</option>
+                        <option value="SE">Sergipe (SE)</option>
+                        <option value="TO">Tocantins (TO)</option>
+                    </select>
+                </div>
+                <div class="input-group-cad">
+                    <label>CIDADE</label>
+                    <select id="cad-cidade" class="input-campo-cad"></select>
                 </div>
             </div>
-            
-            <div id="comprovante-jdp" style="background: #0a1412; border: 1px solid var(--accent); padding: 15px; border-radius: 8px; font-size: 0.8rem; color: #fff; line-height: 1.5;">
-                <div style="text-align: center; color: var(--gold); font-weight: bold; margin-bottom: 10px; font-size: 0.9rem;">COMPROVANTE DE PAGAMENTO JDP</div>
-                <div><strong>Status:</strong> APROVADO ✅</div>
-                <div><strong>Valor:</strong> ${valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
-                <div><strong>Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</div>
-                <div><strong>ID Transação:</strong> ${idUrlAtual || 'GOLD_CAR_WASH_' + Date.now()}</div>
-                <div><strong>Estabelecimento:</strong> GOLD CAR WASH</div>
-                <div><strong>Chave Pix:</strong> ${chaveCongelada}</div>
+
+            <button class="btn-cadastrar-cad" onclick="salvarCadastroELogin()">CONFIRMAR E ENTRAR</button>
+        </div>
+    </div>
+
+    <!-- DRAWER / MENU LATERAL DO PERFIL -->
+    <div id="menu-perfil-overlay" onclick="fecharPerfilDrawer()"></div>
+    <div id="menu-perfil-drawer">
+        <div class="drawer-header">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-2xl">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-lg leading-tight" id="drawer-nome-user">---</h3>
+                    <p class="text-xs text-red-500 font-semibold cursor-pointer" onclick="trocarCidadeOuPerfil()">Editar minhas informações <i class="fas fa-chevron-right text-[10px]"></i></p>
+                </div>
             </div>
-            <button id="btnEnviarZap" onclick="enviarComprovanteZap()" style="width: 100%; margin-top: 15px; padding: 15px; background: #25d366; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">
-                <i class="fab fa-whatsapp"></i> ENVIAR COMPROVANTE JDP (92984846058)
+            <button onclick="fecharPerfilDrawer()" class="text-slate-400 text-lg"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="drawer-content">
+            <div class="menu-item"><i class="fas fa-clock-rotate-left"></i><span>Atividade</span></div>
+            <div class="menu-item"><i class="fas fa-wallet text-yellow-500"></i><span>99Pay</span></div>
+            <div class="menu-item"><i class="fas fa-circle-question"></i><span>Ajuda</span></div>
+            <div class="menu-item"><i class="fas fa-comment-dots"></i><span>Mensagens</span></div>
+            <div class="menu-item"><i class="fas fa-shield-halved"></i><span>Central de segurança</span></div>
+            <div class="menu-item"><i class="fas fa-credit-card"></i><span>Métodos de pagamento</span></div>
+            <div class="menu-item"><i class="fas fa-gear"></i><span>Configurações</span></div>
+            <div class="menu-item"><i class="fas fa-trophy"></i><span>Desafios</span></div>
+            <div class="menu-item"><i class="fas fa-user-plus text-red-400"></i><span>Convide Amigos</span></div>
+            <div class="menu-item"><i class="fas fa-id-card"></i><span>Seja Motorista</span></div>
+            <div class="menu-item"><i class="fas fa-tags"></i><span>Descontos</span></div>
+        </div>
+
+        <div class="drawer-footer">
+            <button class="btn-sair-perfil" onclick="efetuarSairLogin()">
+                <i class="fas fa-right-from-bracket"></i> Sair do Sistema
             </button>
-        `;
+        </div>
+    </div>
 
-        db.ref('lojas/' + LOJA_ID + '/qr_venda_ativa').set(VIDEO_COMEMORACAO).catch(err => {});
-        db.ref('lojas/' + LOJA_ID + '/caixa_pagamento').set({ status: "STANDBY", valor_aguardando: "0" }).catch(err => {});
+    <!-- BOTÃO DE VOLTAR NO ESTÁGIO 2 -->
+    <div class="header-busca-voltar" id="btn-voltar-home" onclick="voltarParaHome()">
+        <div class="btn-back-circle">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+    </div>
 
-        // Salva no localStorage para auditoria local também
-        let hist = JSON.parse(localStorage.getItem('jdp_auditoria_' + LOJA_ID) || '[]');
-        hist.push({ 
-            data: new Date().toLocaleString('pt-BR'), 
-            valor: valorCongelado.toFixed(2).replace('.', ',') 
-        });
-        localStorage.setItem('jdp_auditoria_' + LOJA_ID, JSON.stringify(hist));
-    }
+    <!-- MAPA FULLSCREEN COM RADAR (ESTÁGIO 2) -->
+    <div id="mapa-full"></div>
 
-    function enviarComprovanteZap() {
-        if (comprovanteEnviadoZap) return;
-        comprovanteEnviadoZap = true;
+    <!-- ===== ESTÁGIO 1: TELA DE BOAS-VINDAS ===== -->
+    <div id="estagio-home">
+        <div id="topo-amarelo">
+            <div class="flex items-center gap-3">
+                <div class="avatar-user" onclick="abrirPerfilDrawer()">
+                    <i class="fas fa-user text-slate-400 text-xl"></i>
+                    <div class="badge-dot"></div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-slate-900" id="display-boas-vindas">Olá, Passageiro!</h1>
+                    <span class="text-xs font-bold text-slate-800" id="display-cidade-atual"><i class="fas fa-location-dot"></i> Uarini - AM</span>
+                </div>
+            </div>
+            <button onclick="trocarCidadeOuPerfil()" class="text-xs bg-slate-900 text-white font-bold px-3 py-1.5 rounded-xl">Trocar</button>
+        </div>
 
-        const valorFormatado = valorCongelado.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-        const dataHora = new Date().toLocaleString('pt-BR');
-        const idTrans = idUrlAtual || 'GOLD_CAR_WASH_' + Date.now();
+        <div class="container-principal">
+            <div class="card-mapa-box">
+                <div id="mapa-preview"></div>
+                
+                <div class="cupom-banner">
+                    <i class="fas fa-percent"></i>
+                    <span>Cupom de 20% OFF expira em 2 dia(s)</span>
+                </div>
 
-        const textoMensagem = `*COMPROVANTE DE PAGAMENTO JDP* 🛡\n\n` +
-            `*Status:* APROVADO ✅\n` +
-            `*Valor:* ${valorFormatado}\n` +
-            `*Data/Hora:* ${dataHora}\n` +
-            `*ID Transação:* ${idTrans}\n` +
-            `*Estabelecimento:* GOLD CAR WASH\n` +
-            `*Chave Pix:* ${chaveCongelada}\n\n` +
-            `_Comprovante gerado automaticamente pelo Sistema JDP._`;
+                <div class="input-para-onde-box" onclick="focarBusca()">
+                    <i class="fas fa-search text-slate-800 text-lg"></i>
+                    <input type="text" id="input-destino-home" placeholder="Para onde" onkeypress="verificarEnter(event)">
+                </div>
+            </div>
 
-        const urlZap = `https://api.whatsapp.com/send?phone=55${WHATSAPP_DESTINO}&text=` + encodeURIComponent(textoMensagem);
-        
-        window.open(urlZap, '_blank');
-        
-        setTimeout(() => {
-            window.location.href = "https://www.google.com";
-        }, 800);
-    }
+            <!-- CARDS DE UTILITÁRIOS IGUAL AO APP DA 99 -->
+            <div class="bg-white rounded-2xl p-4 mt-4 shadow-sm">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Praticidade nas finanças</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center font-bold">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-800">JDP Pay & Pix</h4>
+                        <p class="text-xs text-slate-500">Pague suas corridas com facilidade</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    function copiarPix() {
-        const textoPix = document.getElementById('pix-texto').innerText;
-        const tempInput = document.createElement('textarea');
-        tempInput.value = textoPix;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        tempInput.setSelectionRange(0, 99999);
+    <!-- ===== ESTÁGIO 2: SHEET COM OPÇÕES DE MOTO E CARRO ===== -->
+    <div id="sheet-opcoes-corrida">
+        <div class="drag-handle"></div>
 
-        try {
-            const sucesso = document.execCommand('copy');
-            document.body.removeChild(tempInput);
+        <div class="cupom-tag-off">
+            <i class="fas fa-percent"></i>
+            <span>Cupom de 50% OFF aplicado</span>
+        </div>
+
+        <!-- LISTA DE VEÍCULOS -->
+        <div class="espaco-opcoes">
             
-            if (sucesso) {
-                const btn = document.getElementById('btnCopiar');
-                btn.innerText = "COPIADO COM SUCESSO!";
-                btn.style.background = "#ffffff";
-                btn.style.color = "#000";
-                setTimeout(() => {
-                    btn.innerText = "COPIAR CÓDIGO PIX";
-                    btn.style.background = "var(--accent)";
-                    btn.style.color = "#000";
-                }, 2000);
-            }
-        } catch (err) {
-            document.body.removeChild(tempInput);
-        }
-    }
+            <!-- OPÇÃO 1: MOTO -->
+            <div class="opcao-item selected" onclick="selecionarOpcao(this, 'Moto', 3.55)">
+                <div class="opcao-esquerda">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="opcao-img" alt="Moto">
+                    <div>
+                        <div class="opcao-titulo">
+                            Moto <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 1</span>
+                        </div>
+                        <div class="opcao-sub">19:17 • 4 min</div>
+                    </div>
+                </div>
+                <div class="opcao-direita">
+                    <div class="opcao-preco">R$3,55</div>
+                    <div class="opcao-preco-riscado">R$ 7,10</div>
+                </div>
+            </div>
 
-    function tocarSom() { 
-        try { 
-            const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
-            const osc = ctx.createOscillator(); 
-            osc.connect(ctx.destination); 
-            osc.start(); 
-            osc.stop(ctx.currentTime + 0.2); 
-        } catch(e) {} 
-    }
-</script>
+            <!-- OPÇÃO 2: POP (CARRO) -->
+            <div class="opcao-item" onclick="selecionarOpcao(this, 'Pop', 23.52)">
+                <div class="opcao-esquerda">
+                    <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png" class="opcao-img" alt="Carro">
+                    <div>
+                        <div class="opcao-titulo">
+                            Pop <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 4</span>
+                        </div>
+                        <div class="opcao-sub">19:19 • 6 min</div>
+                    </div>
+                </div>
+                <div class="opcao-direita">
+                    <div class="opcao-preco">R$23,52</div>
+                    <div class="opcao-preco-riscado">R$ 29,40</div>
+                </div>
+            </div>
+
+            <!-- OPÇÃO 3: NEGOCIA -->
+            <div class="opcao-item" onclick="selecionarOpcao(this, 'Negocia', valorNegocia)">
+                <div class="opcao-esquerda">
+                    <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png" class="opcao-img" style="filter: hue-rotate(90deg);" alt="Carro Negocia">
+                    <div>
+                        <div class="opcao-titulo">
+                            Negocia <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 4</span>
+                        </div>
+                        <div class="opcao-sub">Negocie e escolha</div>
+                    </div>
+                </div>
+                <div class="opcao-direita">
+                    <div class="controles-negocia">
+                        <button class="btn-math-sm" onclick="alterarNegocia(-1.00, event)">-</button>
+                        <span id="val-negocia-display" class="font-extrabold text-sm">29,40</span>
+                        <button class="btn-math-sm" onclick="alterarNegocia(1.00, event)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPÇÃO 4: TÁXI MOTO -->
+            <div class="opcao-item" onclick="selecionarOpcao(this, 'Táxi Moto', 14.80)">
+                <div class="opcao-esquerda">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="opcao-img" style="filter: sepia(1);" alt="Taxi Moto">
+                    <div>
+                        <div class="opcao-titulo">
+                            Táxi Moto <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 1</span>
+                        </div>
+                        <div class="opcao-sub">Mototáxi na 99</div>
+                    </div>
+                </div>
+                <div class="opcao-direita">
+                    <div class="opcao-preco">R$14,80</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER SOLICITAR -->
+        <div class="footer-pagamento-solicitar">
+            <div class="linha-pagamento">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave text-yellow-500 text-base"></i>
+                    <span>Dinheiro</span>
+                </div>
+                <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
+            </div>
+
+            <button class="btn-solicitar-99" id="btn-confirmar-solicitacao" onclick="solicitarCorridaFinal()">
+                R$ 3,55 • Solicitar Moto
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = { databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const LOJA_ID = "LEOVARDIOS_burguer_2026";
+
+        // COORDENADAS PRE-CARREGADAS DAS PRINCIPAIS CIDADES E CAPITAIS DE CADA ESTADO
+        const COORDENADAS_FIXAS = {
+            "AC": { "Rio Branco": [-9.9749, -67.8243], "Cruzeiro do Sul": [-7.6347, -72.6718] },
+            "AL": { "Maceió": [-9.6658, -35.7353], "Arapiraca": [-9.7558, -36.6606] },
+            "AP": { "Macapá": [0.0349, -51.0694], "Santana": [-0.0583, -51.1817] },
+            "AM": { "Uarini": [-2.9903, -65.1083], "Manaus": [-3.1190, -60.0217], "Coari": [-4.0849, -63.1417], "Tefé": [-3.3542, -64.7181], "Parintins": [-2.6289, -56.7358], "Itacoatiara": [-3.1431, -58.4442], "Manacapuru": [-3.2997, -60.6208] },
+            "BA": { "Salvador": [-12.9714, -38.5014], "Feira de Santana": [-12.2664, -38.9664], "Vitória da Conquista": [-14.8661, -40.8394] },
+            "CE": { "Fortaleza": [-3.7319, -38.5267], "Caucaia": [-3.7361, -38.6531], "Juazeiro do Norte": [-7.2131, -39.3153] },
+            "DF": { "Brasília": [-15.7975, -47.8919] },
+            "ES": { "Vitória": [-20.3155, -40.3128], "Vila Velha": [-20.3297, -40.2925], "Serra": [-20.1286, -40.3078] },
+            "GO": { "Goiânia": [-16.6869, -49.2648], "Aparecida de Goiânia": [-16.8233, -49.2439], "Anápolis": [-16.3267, -48.9533] },
+            "MA": { "São Luís": [-2.5307, -44.3068], "Imperatriz": [-5.5264, -47.4917] },
+            "MT": { "Cuiabá": [-15.6010, -56.0974], "Várzea Grande": [-15.6469, -56.1325], "Rondonópolis": [-16.4678, -54.6361] },
+            "MS": { "Campo Grande": [-20.4697, -54.6201], "Dourados": [-22.2231, -54.8064] },
+            "MG": { "Belo Horizonte": [-19.9167, -43.9345], "Uberlândia": [-18.9186, -48.2772], "Juiz de Fora": [-21.7642, -43.3503] },
+            "PA": { "Belém": [-1.4558, -48.4902], "Ananindeua": [-1.3658, -48.3722], "Santarém": [-2.4431, -54.7083], "Marabá": [-5.3686, -49.1178] },
+            "PB": { "João Pessoa": [-7.1195, -34.8450], "Campina Grande": [-7.2306, -35.8811] },
+            "PR": { "Curitiba": [-25.4284, -49.2733], "Londrina": [-23.3045, -51.1696], "Maringá": [-23.4210, -51.9331] },
+            "PE": { "Recife": [-8.0476, -34.8770], "Jaboatão dos Guararapes": [-8.1764, -35.0033], "Olinda": [-8.0089, -34.8553] },
+            "PI": { "Teresina": [-5.0920, -42.8038], "Parnaíba": [-2.9047, -41.7767] },
+            "RJ": { "Rio de Janeiro": [-22.9068, -43.1729], "São Gonçalo": [-22.8269, -43.0539], "Duque de Caxias": [-22.7856, -43.3117], "Niterói": [-22.8833, -43.1036] },
+            "RN": { "Natal": [-5.7945, -35.2110], "Mossoró": [-5.1878, -37.3442] },
+            "RS": { "Porto Alegre": [-30.0346, -51.2177], "Caxias do Sul": [-29.1681, -51.1794], "Canoas": [-29.9178, -51.1842] },
+            "RO": { "Porto Velho": [-8.7619, -63.9039], "Ji-Paraná": [-10.8778, -61.9514] },
+            "RR": { "Boa Vista": [2.8235, -60.6758] },
+            "SC": { "Florianópolis": [-27.5954, -48.5480], "Joinville": [-26.3045, -48.8464], "Blumenau": [-26.9194, -49.0661] },
+            "SP": { "São Paulo": [-23.5505, -46.6333], "Guarulhos": [-23.4628, -46.5333], "Campinas": [-22.9099, -47.0626], "São Bernardo do Campo": [-23.6939, -46.5650], "Santo André": [-23.6639, -46.5383] },
+            "SE": { "Aracaju": [-10.9472, -37.0731], "Nossa Senhora do Socorro": [-10.8547, -37.1264] },
+            "TO": { "Palmas": [-10.2491, -48.3242], "Araguaína": [-7.1928, -48.2044] }
+        };
+
+        let mapPreview = null, mapFull = null;
+        let valorSelecionado = 3.55;
+        let tipoSelecionado = 'Moto';
+        let valorNegocia = 29.40;
+        let usuarioLogado = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            atualizarCidadesPorEstado();
+            verificarLoginSalvo();
+        });
+
+        // BUSCA TODAS AS CIDADES DE QUALQUER ESTADO VIA API IBGE
+        async function atualizarCidadesPorEstado() {
+            const estado = document.getElementById('cad-estado').value;
+            const selectCidade = document.getElementById('cad-cidade');
+            selectCidade.innerHTML = "<option>Carregando cidades...</option>";
+
+            try {
+                const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios?orderBy=nome`);
+                const cidadesAPI = await res.json();
+                
+                selectCidade.innerHTML = "";
+                cidadesAPI.forEach(item => {
+                    selectCidade.innerHTML += `<option value="${item.nome}">${item.nome}</option>`;
+                });
+            } catch (err) {
+                // FALLBACK LOCAL CASO O OFFLINE/REDE FALHE
+                const cidadesLocais = COORDENADAS_FIXAS[estado] || {};
+                selectCidade.innerHTML = "";
+                Object.keys(cidadesLocais).forEach(cidade => {
+                    selectCidade.innerHTML += `<option value="${cidade}">${cidade}</option>`;
+                });
+            }
+        }
+
+        function verificarLoginSalvo() {
+            const salvo = localStorage.getItem('jdp_usuario_cadastrado');
+            if (salvo) {
+                usuarioLogado = JSON.parse(salvo);
+                document.getElementById('modal-cadastro').style.display = 'none';
+                document.getElementById('display-boas-vindas').innerText = `Olá, ${usuarioLogado.nome.split(' ')[0]}!`;
+                document.getElementById('drawer-nome-user').innerText = usuarioLogado.nome;
+                document.getElementById('display-cidade-atual').innerHTML = `<i class="fas fa-location-dot"></i> ${usuarioLogado.cidade} - ${usuarioLogado.estado}`;
+                iniciarMapaPreview(usuarioLogado.estado, usuarioLogado.cidade);
+            } else {
+                document.getElementById('modal-cadastro').style.display = 'flex';
+            }
+        }
+
+        function salvarCadastroELogin() {
+            const nome = document.getElementById('cad-nome').value.trim();
+            const tel = document.getElementById('cad-tel').value.trim().replace(/\D/g, '');
+            const estado = document.getElementById('cad-estado').value;
+            const cidade = document.getElementById('cad-cidade').value;
+
+            if (!nome || !tel) return alert("Por favor, preencha seu nome e WhatsApp.");
+
+            usuarioLogado = { nome, telefone: tel, estado, cidade };
+
+            // SALVA NO LOCALSTORAGE
+            localStorage.setItem('jdp_usuario_cadastrado', JSON.stringify(usuarioLogado));
+
+            // SALVA NO FIREBASE REALTIME DATABASE
+            db.ref(`lojas/${LOJA_ID}/usuarios/${tel}`).set({
+                ...usuarioLogado,
+                data_cadastro: new Date().toISOString()
+            }).then(() => {
+                document.getElementById('modal-cadastro').style.display = 'none';
+                document.getElementById('display-boas-vindas').innerText = `Olá, ${nome.split(' ')[0]}!`;
+                document.getElementById('drawer-nome-user').innerText = nome;
+                document.getElementById('display-cidade-atual').innerHTML = `<i class="fas fa-location-dot"></i> ${cidade} - ${estado}`;
+                iniciarMapaPreview(estado, cidade);
+            });
+        }
+
+        /* FUNÇÕES DO DRAWER DO PERFIL */
+        function abrirPerfilDrawer() {
+            const overlay = document.getElementById('menu-perfil-overlay');
+            const drawer = document.getElementById('menu-perfil-drawer');
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                drawer.style.left = '0';
+            }, 10);
+        }
+
+        function fecharPerfilDrawer() {
+            const overlay = document.getElementById('menu-perfil-overlay');
+            const drawer = document.getElementById('menu-perfil-drawer');
+            drawer.style.left = '-85%';
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+
+        function efetuarSairLogin() {
+            if (confirm("Deseja realmente sair da sua conta?")) {
+                localStorage.removeItem('jdp_usuario_cadastrado');
+                location.reload();
+            }
+        }
+
+        function trocarCidadeOuPerfil() {
+            fecharPerfilDrawer();
+            document.getElementById('modal-cadastro').style.display = 'flex';
+        }
+
+        async function obteCoordenadasCidade(uf, cidade) {
+            // VERIFICA SE TEM NO BANCO FIXO PRIMEIRO
+            if (COORDENADAS_FIXAS[uf] && COORDENADAS_FIXAS[uf][cidade]) {
+                return COORDENADAS_FIXAS[uf][cidade];
+            }
+            // BUSCA COORDENADAS REAIS NOMINATIM CASO SEJA UM MUNICÍPIO ESPECÍFICO
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cidade + ', ' + uf + ', Brasil')}`);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                }
+            } catch (e) {}
+
+            return [-2.9903, -65.1083]; // PADRÃO UARINI AM
+        }
+
+        async function iniciarMapaPreview(uf, cidade) {
+            const coords = await obteCoordenadasCidade(uf, cidade);
+
+            if (mapPreview) {
+                mapPreview.remove();
+                mapPreview = null;
+            }
+
+            mapPreview = L.map('mapa-preview', { zoomControl: false, attributionControl: false }).setView(coords, 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapPreview);
+
+            L.circleMarker(coords, { radius: 8, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.8 }).addTo(mapPreview);
+        }
+
+        function focarBusca() {
+            const dest = document.getElementById('input-destino-home').value.trim();
+            if (!dest) {
+                document.getElementById('input-destino-home').focus();
+                return;
+            }
+            abrirOpcoesCorridas();
+        }
+
+        function verificarEnter(e) {
+            if (e.key === 'Enter') focarBusca();
+        }
+
+        function abrirOpcoesCorridas() {
+            document.getElementById('estagio-home').style.display = 'none';
+            document.getElementById('mapa-full').style.display = 'block';
+            document.getElementById('btn-voltar-home').style.display = 'block';
+            document.getElementById('sheet-opcoes-corrida').style.display = 'block';
+
+            iniciarMapaRadarNoTelao();
+        }
+
+        function voltarParaHome() {
+            document.getElementById('estagio-home').style.display = 'block';
+            document.getElementById('mapa-full').style.display = 'none';
+            document.getElementById('btn-voltar-home').style.display = 'none';
+            document.getElementById('sheet-opcoes-corrida').style.display = 'none';
+            
+            if (mapFull) {
+                mapFull.remove();
+                mapFull = null;
+            }
+        }
+
+        async function iniciarMapaRadarNoTelao() {
+            const coords = usuarioLogado ? await obteCoordenadasCidade(usuarioLogado.estado, usuarioLogado.cidade) : [-2.9903, -65.1083];
+
+            setTimeout(() => {
+                if (mapFull) {
+                    mapFull.remove();
+                    mapFull = null;
+                }
+
+                mapFull = L.map('mapa-full', { zoomControl: false, attributionControl: false }).setView(coords, 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapFull);
+
+                const radarIcon = L.divIcon({
+                    className: 'leaflet-div-icon',
+                    html: `<div style="position:relative; width:120px; height:120px; background:transparent;"><div class="radar-pulse-ring"></div><div class="radar-pulse-ring" style="animation-delay: 1.1s;"></div><div style="position:absolute; top:48px; left:48px; width:24px; height:24px; background:#facc15; border-radius:50%; box-shadow:0 0 20px #facc15; border: 2px solid #000;"></div></div>`,
+                    iconSize: [120, 120],
+                    iconAnchor: [60, 60]
+                });
+                
+                L.marker(coords, { icon: radarIcon }).addTo(mapFull);
+
+                mapFull.invalidateSize();
+            }, 250);
+        }
+
+        function selecionarOpcao(element, tipo, valor) {
+            document.querySelectorAll('.opcao-item').forEach(i => i.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            tipoSelecionado = tipo;
+            valorSelecionado = valor;
+
+            document.getElementById('btn-confirmar-solicitacao').innerText = `R$ ${valor.toFixed(2).replace('.', ',')} • Solicitar ${tipo}`;
+        }
+
+        function alterarNegocia(delta, event) {
+            event.stopPropagation();
+            valorNegocia += delta;
+            if (valorNegocia < 5.00) valorNegocia = 5.00;
+            document.getElementById('val-negocia-display').innerText = valorNegocia.toFixed(2).replace('.', ',');
+            
+            if (tipoSelecionado === 'Negocia') {
+                valorSelecionado = valorNegocia;
+                document.getElementById('btn-confirmar-solicitacao').innerText = `R$ ${valorNegocia.toFixed(2).replace('.', ',')} • Solicitar Negocia`;
+            }
+        }
+
+        function solicitarCorridaFinal() {
+            const destino = document.getElementById('input-destino-home').value.trim() || `${usuarioLogado.cidade} Centro`;
+            const idCorrida = "JDP-C" + Math.floor(Math.random() * 90000 + 10000);
+
+            db.ref(`lojas/${LOJA_ID}/producao_pendente/${idCorrida}`).set({
+                id: idCorrida,
+                passageiro_tel: usuarioLogado ? usuarioLogado.telefone : "SemTel",
+                passageiro_nome: usuarioLogado ? usuarioLogado.nome : "Passageiro",
+                cidade: usuarioLogado ? usuarioLogado.cidade : "Uarini",
+                estado: usuarioLogado ? usuarioLogado.estado : "AM",
+                categoria: tipoSelecionado,
+                destino: destino,
+                valor_ofertado: valorSelecionado.toFixed(2),
+                status: "Pendente",
+                hora: new Date().toLocaleTimeString()
+            }).then(() => {
+                alert(`Solicitação de ${tipoSelecionado} enviada com sucesso em ${usuarioLogado ? usuarioLogado.cidade : 'Uarini'}! Procurando motoristas...`);
+            });
+        }
+    </script>
 </body>
 </html>
