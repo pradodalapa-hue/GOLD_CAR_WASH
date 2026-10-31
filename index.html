@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JDP MOBILIDADE - BRASIL SUPREME</title>
+    <title>JDP MOBILIDADE - BRASIL SUPREME (CLIENTE)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -39,63 +39,34 @@
 
         /* MODAL DE CADASTRO E LOGIN */
         #modal-cadastro {
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, 0.96);
-            backdrop-filter: blur(12px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.96);
+            backdrop-filter: blur(12px); z-index: 9999; display: flex;
+            align-items: center; justify-content: center; padding: 20px;
         }
 
         .card-cadastro {
-            width: 100%;
-            max-width: 420px;
-            background: #0f172a;
-            border: 2px solid #1e293b;
-            border-radius: 24px;
-            padding: 24px;
-            color: #fff;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            width: 100%; max-width: 420px; background: #0f172a; border: 2px solid #1e293b;
+            border-radius: 24px; padding: 24px; color: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
         }
 
         .input-group-cad { margin-bottom: 14px; }
         .input-group-cad label { display: block; font-size: 11px; font-family: 'Orbitron', sans-serif; color: #06b6d4; margin-bottom: 5px; }
         .input-campo-cad {
-            width: 100%;
-            padding: 13px 15px;
-            border-radius: 12px;
-            border: 1px solid #334155;
-            background: #020617;
-            color: #fff;
-            outline: none;
-            font-size: 14px;
+            width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid #334155;
+            background: #020617; color: #fff; outline: none; font-size: 14px;
         }
         .input-campo-cad:focus { border-color: #06b6d4; }
 
         .btn-cadastrar-cad {
-            width: 100%;
-            padding: 15px;
-            background: var(--jdp-gold-gradient);
-            border: none;
-            border-radius: 14px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            color: #000;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(179, 135, 40, 0.4);
+            width: 100%; padding: 15px; background: var(--jdp-gold-gradient); border: none;
+            border-radius: 14px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            color: #000; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(179, 135, 40, 0.4);
         }
 
         /* ESTÁGIO 1: BOAS-VINDAS */
         #topo-amarelo {
-            background: var(--yellow-99);
-            padding: 20px 20px 60px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: var(--yellow-99); padding: 20px 20px 60px 20px;
+            display: flex; align-items: center; justify-content: space-between;
         }
 
         .avatar-user {
@@ -118,14 +89,14 @@
             padding: 8px 16px; display: flex; align-items: center; gap: 8px;
         }
 
-        /* PAINEL DE ENDEREÇOS COM BOTÃO DE BUSCA AO LADO */
+        /* PAINEL DE ENDEREÇOS COM BOTÃO LATERAL DE PESQUISA */
         .painel-enderecos-box {
             padding: 14px 16px; background: #fff; display: flex; flex-direction: column; gap: 10px;
             border-top: 1px solid #f1f5f9;
         }
 
         .linha-input-endereco {
-            display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 8px 12px;
+            display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 8px 12px;
             border-radius: 14px; border: 1px solid #e2e8f0;
         }
 
@@ -139,13 +110,13 @@
             border-radius: 8px; cursor: pointer; white-space: nowrap;
         }
 
-        .btn-executar-busca {
-            width: 100%; padding: 14px; background: #0f172a; color: #fff; font-weight: 800; font-size: 14px;
-            border-radius: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+        .btn-pesquisar-acao {
+            background: #0f172a; color: #fff; border: none; padding: 10px 14px; border-radius: 10px;
+            font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
-        /* DRAWER DO PERFIL */
+        /* DRAWER DO PERFIL DO USUÁRIO */
         #menu-perfil-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9990; display: none; opacity: 0; transition: opacity 0.3s ease; }
         #menu-perfil-drawer {
             position: fixed; top: 0; left: -85%; width: 85%; max-width: 320px; height: 100%; background: #ffffff;
@@ -179,15 +150,17 @@
         .header-busca-voltar { position: fixed; top: 15px; left: 15px; z-index: 1001; display: none; }
         .btn-back-circle { width: 44px; height: 44px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; font-size: 18px; color: #0f172a; }
 
-        /* HUD RADAR CONTAGEM */
+        /* CARD DE RADAR E CONTAGEM REGRESSIVA */
         #hud-radar-contador {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1002;
             background: #0f172a; border: 2px solid #facc15; border-radius: 20px; padding: 12px 20px;
-            color: #fff; display: none; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 90%; max-width: 380px;
+            color: #fff; display: none; align-items: center; gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%; max-width: 380px;
         }
+
         .badge-timer-radar { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #facc15; }
 
-        /* CARD DO MOTORISTA A CAMINHO */
+        /* CARD DO MOTORISTA QUE ACEITOU */
         #card-motorista-aceito {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1005;
             width: 92%; max-width: 400px; background: #0f172a; border: 2px solid #06b6d4;
@@ -195,15 +168,15 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.7);
         }
 
-        /* NOTIFICAÇÃO MOTORISTA CHEGOU */
+        /* BANNER MOTORISTA CHEGOU */
         #banner-motorista-chegou {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1006;
             width: 90%; max-width: 380px; background: #16a34a; border: 2px solid #86efac; border-radius: 20px;
             padding: 14px 18px; color: #fff; display: none; align-items: center; justify-content: space-between;
-            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.5); animation: bounce 1s infinite alternate;
+            box-shadow: 0 10px 30px rgba(22, 163, 74, 0.5);
         }
 
-        /* SHEET OPÇÕES CORRIDA */
+        /* SHEET INFERIOR DE OPÇÕES */
         #sheet-opcoes-corrida {
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; background: #ffffff;
             border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 14px 16px 20px 16px;
@@ -215,6 +188,7 @@
 
         .opcao-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px; border-radius: 16px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
         .opcao-item.selected { background: #f0fdf4; border-color: #22c55e; }
+
         .opcao-esquerda { display: flex; align-items: center; gap: 12px; }
         .opcao-img { width: 50px; height: 35px; object-fit: contain; }
         .opcao-titulo { font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px; }
@@ -225,6 +199,7 @@
 
         .controles-negocia { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 4px 8px; border-radius: 10px; }
         .btn-math-sm { width: 26px; height: 26px; background: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
         .footer-pagamento-solicitar { margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 12px; }
         .linha-pagamento { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 12px; cursor: pointer; }
         .btn-solicitar-99 { width: 100%; padding: 16px; background: var(--yellow-99); border: none; border-radius: 30px; font-size: 16px; font-weight: 900; color: #000; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 204, 0, 0.4); text-align: center; }
@@ -232,12 +207,12 @@
 </head>
 <body>
 
-    <!-- MODAL DE CADASTRO E SELEÇÃO DE ESTADO E CIDADE -->
+    <!-- MODAL DE CADASTRO E LOGIN COM NÓ DA LOJA uber_2026 -->
     <div id="modal-cadastro">
         <div class="card-cadastro">
             <div style="text-align: center; margin-bottom: 18px;">
                 <h2 style="font-family:'Orbitron'; color:var(--gold); font-size:18px;">JDP MOBILIDADE 🚗</h2>
-                <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Selecione qualquer estado e cidade do Brasil</p>
+                <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Selecione sua cidade e comece a pedir</p>
             </div>
 
             <div class="input-group-cad">
@@ -382,7 +357,7 @@
         </div>
     </div>
 
-    <!-- MAPA FULLSCREEN COM RADAR (ESTÁGIO 2) -->
+    <!-- MAPA FULLSCREEN (ESTÁGIO 2) -->
     <div id="mapa-full"></div>
 
     <!-- ===== ESTÁGIO 1: TELA DE BOAS-VINDAS ===== -->
@@ -410,7 +385,7 @@
                     <span>Cupom de 20% OFF expira em 2 dia(s)</span>
                 </div>
 
-                <!-- CAMPO DE ORIGEM (DE) E DESTINO (PARA) COM BOTÃO DE BUSCAR -->
+                <!-- CAMPO DE ORIGEM E DESTINO COM BOTÃO LATERAL DE BUSCA -->
                 <div class="painel-enderecos-box">
                     <div class="linha-input-endereco">
                         <i class="fas fa-circle-dot text-green-500 text-sm"></i>
@@ -420,17 +395,14 @@
 
                     <div class="linha-input-endereco">
                         <i class="fas fa-location-dot text-red-500 text-sm"></i>
-                        <input type="text" id="input-destino-home" placeholder="Para: Ex: Rua A" onkeypress="verificarEnter(event)">
+                        <input type="text" id="input-destino-home" placeholder="Para: Ex: Rua A ou Bairro" onkeypress="verificarEnter(event)">
+                        <button class="btn-pesquisar-acao" onclick="focarBusca()">
+                            <i class="fas fa-search"></i> BUSCAR
+                        </button>
                     </div>
-
-                    <!-- BOTÃO DIRETO PARA INICIAR A BUSCA SEM DEPENDER DO TECLADO -->
-                    <button class="btn-executar-busca" onclick="focarBusca()">
-                        <i class="fas fa-magnifying-glass"></i> IR / BUSCAR CORRIDA
-                    </button>
                 </div>
             </div>
 
-            <!-- CARDS DE UTILITÁRIOS IGUAL AO APP DA 99 -->
             <div class="bg-white rounded-2xl p-4 mt-4 shadow-sm">
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Praticidade nas finanças</p>
                 <div class="flex items-center gap-3">
@@ -446,7 +418,7 @@
         </div>
     </div>
 
-    <!-- ===== ESTÁGIO 2: SHEET COM OPÇÕES DE MOTO E CARRO ===== -->
+    <!-- ===== ESTÁGIO 2: SHEET COM OPÇÕES ===== -->
     <div id="sheet-opcoes-corrida">
         <div class="drag-handle"></div>
 
@@ -455,17 +427,12 @@
             <span>Cupom de 50% OFF aplicado</span>
         </div>
 
-        <!-- LISTA DE VEÍCULOS -->
         <div class="espaco-opcoes">
-            
-            <!-- OPÇÃO 1: MOTO -->
             <div class="opcao-item selected" onclick="selecionarOpcao(this, 'Moto', 3.55)">
                 <div class="opcao-esquerda">
                     <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="opcao-img" alt="Moto">
                     <div>
-                        <div class="opcao-titulo">
-                            Moto <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 1</span>
-                        </div>
+                        <div class="opcao-titulo">Moto <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 1</span></div>
                         <div class="opcao-sub">19:17 • 4 min</div>
                     </div>
                 </div>
@@ -475,14 +442,11 @@
                 </div>
             </div>
 
-            <!-- OPÇÃO 2: POP (CARRO) -->
             <div class="opcao-item" onclick="selecionarOpcao(this, 'Pop', 23.52)">
                 <div class="opcao-esquerda">
                     <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png" class="opcao-img" alt="Carro">
                     <div>
-                        <div class="opcao-titulo">
-                            Pop <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 4</span>
-                        </div>
+                        <div class="opcao-titulo">Pop <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 4</span></div>
                         <div class="opcao-sub">19:19 • 6 min</div>
                     </div>
                 </div>
@@ -492,14 +456,11 @@
                 </div>
             </div>
 
-            <!-- OPÇÃO 3: NEGOCIA -->
             <div class="opcao-item" onclick="selecionarOpcao(this, 'Negocia', valorNegocia)">
                 <div class="opcao-esquerda">
-                    <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png" class="opcao-img" style="filter: hue-rotate(90deg);" alt="Carro Negocia">
+                    <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png" class="opcao-img" style="filter: hue-rotate(90deg);" alt="Negocia">
                     <div>
-                        <div class="opcao-titulo">
-                            Negocia <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 4</span>
-                        </div>
+                        <div class="opcao-titulo">Negocia <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 4</span></div>
                         <div class="opcao-sub">Negocie e escolha</div>
                     </div>
                 </div>
@@ -512,14 +473,11 @@
                 </div>
             </div>
 
-            <!-- OPÇÃO 4: TÁXI MOTO -->
             <div class="opcao-item" onclick="selecionarOpcao(this, 'Táxi Moto', 14.80)">
                 <div class="opcao-esquerda">
                     <img src="https://cdn-icons-png.flaticon.com/512/3198/3198336.png" class="opcao-img" style="filter: sepia(1);" alt="Taxi Moto">
                     <div>
-                        <div class="opcao-titulo">
-                            Táxi Moto <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 1</span>
-                        </div>
+                        <div class="opcao-titulo">Táxi Moto <span class="text-xs text-slate-400 font-semibold"><i class="fas fa-user"></i> 1</span></div>
                         <div class="opcao-sub">Mototáxi na 99</div>
                     </div>
                 </div>
@@ -527,10 +485,8 @@
                     <div class="opcao-preco">R$14,80</div>
                 </div>
             </div>
-
         </div>
 
-        <!-- FOOTER SOLICITAR -->
         <div class="footer-pagamento-solicitar">
             <div class="linha-pagamento">
                 <div class="flex items-center gap-2">
@@ -550,14 +506,14 @@
         const firebaseConfig = { databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const LOJA_ID = "uber_2026";
+        const LOJA_ID = "uber_2026"; // Conectado direto na loja correta
 
         const COORDENADAS_FIXAS = {
             "AM": { "Uarini": [-2.9903, -65.1083], "Maués": [-3.3833, -57.7167], "Manaus": [-3.1190, -60.0217] },
             "SP": { "São Paulo": [-23.5505, -46.6333] }
         };
 
-        let mapPreview = null, mapFull = null, markerMotoristaFull = null;
+        let mapPreview = null, mapFull = null, markerMotoristaFull = null, markerDestinoCliente = null;
         let valorSelecionado = 3.55;
         let tipoSelecionado = 'Moto';
         let valorNegocia = 29.40;
@@ -568,6 +524,12 @@
 
         const iconeMotoristaNaPista = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        const iconeDestinoCliente = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
             iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
         });
@@ -702,7 +664,7 @@
         function focarBusca() {
             const dest = document.getElementById('input-destino-home').value.trim();
             if (!dest) {
-                alert("Por favor, informe a rua ou destino!");
+                alert("Por favor, informe a rua ou bairro de destino!");
                 document.getElementById('input-destino-home').focus();
                 return;
             }
@@ -778,7 +740,6 @@
             }
         }
 
-        /* DISPARO DA CORRIDA E ESCUTA DO MOTORISTA */
         function solicitarCorridaFinal() {
             const origem = document.getElementById('input-origem-home').value.trim() || "Localização Atual";
             const destino = document.getElementById('input-destino-home').value.trim() || `${usuarioLogado.cidade} Centro`;
@@ -816,7 +777,6 @@
                 }
             }, 1000);
 
-            // Inicia monitoramento do aceite pelo Motorista no Firebase
             escutarStatusDoMotorista(idCorridaAtiva);
         }
 
@@ -824,7 +784,6 @@
             db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${idCorrida}`).on('value', snap => {
                 const dados = snap.val();
                 if (dados) {
-                    // Motorista aceitou a corrida!
                     clearInterval(timerRadarInterval);
                     document.getElementById('hud-radar-contador').style.display = 'none';
                     document.getElementById('card-motorista-aceito').style.display = 'flex';
@@ -833,7 +792,13 @@
                     document.getElementById('card-driver-veiculo').innerText = `${dados.motorista_veiculo || 'Veículo'} • ${dados.motorista_placa || 'Sem Placa'}`;
                     document.getElementById('card-driver-valor').innerText = `R$ ${parseFloat(dados.valor).toFixed(2).replace('.', ',')}`;
 
-                    // Notificação caso o motorista clique em "CHEGUEI NO LOCAL"
+                    // Exibe o destino do cliente no mapa do passageiro se houver coordenadas
+                    if (dados.latDestino && dados.lngDestino && mapFull) {
+                        if (markerDestinoCliente) mapFull.removeLayer(markerDestinoCliente);
+                        markerDestinoCliente = L.marker([dados.latDestino, dados.lngDestino], { icon: iconeDestinoCliente }).addTo(mapFull)
+                            .bindPopup(`<b>Seu Destino:</b><br>${dados.destino}`).openPopup();
+                    }
+
                     if (dados.status === "motorista_chegou") {
                         document.getElementById('banner-motorista-chegou').style.display = 'flex';
                         document.getElementById('card-driver-status').innerHTML = `<i class="fas fa-check-circle text-green-400"></i> Motorista aguardando na porta!`;
@@ -846,12 +811,13 @@
                 }
             });
 
-            // Escuta a posição em tempo real do Motoboy no Mapa
+            // Exibe a posição em tempo real do motorista no mapa do cliente
             db.ref(`lojas/${LOJA_ID}/motoboy_status`).on('value', snap => {
                 const pos = snap.val();
                 if (pos && pos.online && pos.latitude && pos.longitude && mapFull) {
                     if (markerMotoristaFull) mapFull.removeLayer(markerMotoristaFull);
-                    markerMotoristaFull = L.marker([pos.latitude, pos.longitude], { icon: iconeMotoristaNaPista }).addTo(mapFull);
+                    markerMotoristaFull = L.marker([pos.latitude, pos.longitude], { icon: iconeMotoristaNaPista }).addTo(mapFull)
+                        .bindPopup("<b>Seu Motorista está aqui!</b>").openPopup();
                 }
             });
         }
